@@ -1,0 +1,7 @@
+include README.rst LICENSE pytest.ini requirements.txt
+recursive-include tests *.py
+include versioneer.py
+include src/nanocurrency/_version.py
+
+graft src/nanocurrency-work-module/ref
+graft src/nanocurrency-work-module/sse

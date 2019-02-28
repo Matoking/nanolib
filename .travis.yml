@@ -1,0 +1,18 @@
+language: python
+python:
+  - "3.6"
+matrix:
+  include:
+    - python: "3.7"
+      dist: xenial
+      sudo: true
+install:
+  - pip install .
+  - pip install -r requirements_dev.txt
+  - pip install codecov
+script:
+  - python setup.py build
+  - pytest --cov=nanocurrency --cov-report term --cov-report xml tests
+  - python setup.py speed
+after_success:
+  - codecov
