@@ -21,6 +21,15 @@ Features
 * Compatible with Python 3.6 and up
 * Licensed under the very permissive *Creative Commons Zero* license
 
+Instalation
+===========
+You can install the library with PIP by using the following command:
+`pip install pynanocurrency`
+
+For importing it on your code, just type the following:
+
+`import nanocurrency`
+
 Documentation
 =============
 
