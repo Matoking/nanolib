@@ -18,7 +18,7 @@ Features
 * High performance cryptographic operations using C extensions (signing and verifying blocks, and solving block proof-of-work)
   * Proof-of-work solving supports SSE2, SSSE3, SSE4.1 and AVX instruction sets for improved performance. The best supported implementation is selected at runtime with a fallback implementation with universal compatibility.
 * Backed by automated tests
-* Compatible with Python 3.4 and up
+* Compatible with Python 3.6 and up
 * Licensed under the very permissive *Creative Commons Zero* license
 
 Documentation
