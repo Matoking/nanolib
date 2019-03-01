@@ -336,7 +336,6 @@ def generate_account_id(seed, index):
 
     return account_id
 
-
 def generate_seed():
     """
     Generate a secure random 64-character hexadecimal seed for use in
@@ -345,6 +344,6 @@ def generate_seed():
     :return: Seed as a 64-character hex string
     :rtype: str
     """
-    gen = random.SystemRandom()
-    return "".join([gen.choice("0123456789abcdef") for _ in range(0, 64)])
-
+    gen = random.SystemRandom().getrandbits(256)
+    seed = hex(gen).upper()[2:]
+    return seed
