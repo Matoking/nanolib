@@ -73,6 +73,8 @@ def validate_work(block_hash, work, threshold=WORK_THRESHOLD):
 
     :param str block_hash: Block hash as a 64-character hex string
     :param str work: Work as a 16-character hex string
+    :param int threshold: The threshold/difficulty for the proof-of-work.
+                          NANO network's threshold is used by default.
     :raises InvalidWork: If the work doesn't meet the threshold
     :return: The work as a 16-character hex string
     :rtype: str

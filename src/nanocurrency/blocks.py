@@ -77,6 +77,32 @@ def block_parameter(setter):
     return wrapper
 
 
+def invalidate_signature(setter):
+    """
+    Invalidate the cached value for `has_valid_signature` when the setter
+    is called
+    """
+    @wraps(setter)
+    def wrapper(self, val):
+        self._has_valid_signature = None
+        setter(self, val)
+
+    return wrapper
+
+
+def invalidate_work(setter):
+    """
+    Invalidate the cached value for `has_valid_work` when the setter
+    is called
+    """
+    @wraps(setter)
+    def wrapper(self, val):
+        self._has_valid_work = None
+        setter(self, val)
+
+    return wrapper
+
+
 def balance_to_hex(balance):
     """Convert a NANO balance to a 16-character hex string used in
     serialized legacy send blocks
@@ -166,7 +192,7 @@ class Block(object):
     __slots__ = (
         "_block_type", "_account", "_previous", "_destination",
         "_representative", "_balance", "_source", "_link", "_link_as_account",
-        "_signature", "_work"
+        "_signature", "_work", "_has_valid_signature", "_has_valid_work"
     )
 
     def __init__(self, block_type, verify=True, **kwargs):
@@ -189,6 +215,8 @@ class Block(object):
         :return: The created block
         :rtype: Block
         """
+        self._has_valid_signature = None
+        self._has_valid_work = None
         self.block_type = block_type
 
         # Set None as default value for all parameters except block_type
@@ -491,15 +519,20 @@ class Block(object):
                  was found to be invalid
         :rtype: bool
         """
+        if self._has_valid_signature is not None:
+            return self._has_valid_signature
+
         if not self.signature or not self.account:
+            self._has_valid_signature = False
             return False
 
         try:
             self.verify_signature()
+            self._has_valid_signature = True
         except InvalidSignature:
-            return False
+            self._has_valid_signature = False
 
-        return True
+        return self._has_valid_signature
 
     @property
     def has_valid_work(self):
@@ -516,15 +549,20 @@ class Block(object):
                  was found to be below the required threshold
         :rtype: bool
         """
+        if self._has_valid_work is not None:
+            return self._has_valid_work
+
         if not self.work:
+            self._has_valid_work = False
             return False
 
         try:
             self.verify_work()
+            self._has_valid_work = True
         except InvalidWork:
-            return False
+            self._has_valid_work = False
 
-        return True
+        return self._has_valid_work
 
     @property
     def complete(self):
@@ -535,6 +573,29 @@ class Block(object):
         :rtype: bool
         """
         return self.has_valid_signature and self.has_valid_work
+
+    @property
+    def work_block_hash(self):
+        """BLAKE2b hash that requires a valid PoW
+
+        For open blocks this is the public key derived from
+        :attr:`nanocurrency.blocks.Block.account`. For other types of blocks,
+        :attr:`nanocurrency.blocks.Block.previous` is used as the hash.
+
+        :return: BLAKE2b hash used to generate a PoW
+        :rtype: str
+
+        """
+        # 'open' blocks use the account ID ('account') itself as part of the
+        # hash
+        # Other blocks use 'previous' to make sure PoW can be completed
+        # in advance (user can immediately send the transaction since PoW is
+        # already ready)
+        return (
+            get_account_public_key(account_id=self.account)
+            if self.tx_type == "open"
+            else self.previous
+        )
 
     @property
     def block_hash(self):
@@ -609,6 +670,7 @@ class Block(object):
             )
 
     @block_parameter
+    @invalidate_signature
     def set_block_type(self, block_type):
         if block_type not in BLOCK_TYPES:
             raise ValueError("Block type is not valid")
@@ -616,18 +678,24 @@ class Block(object):
         self._block_type = block_type
 
     @block_parameter
+    @invalidate_signature
+    @invalidate_work
     def set_account(self, account):
         if account is not None:
             validate_account_id(account)
         self._account = account
 
     @block_parameter
+    @invalidate_signature
+    @invalidate_work
     def set_source(self, source):
         if source is not None:
             validate_block_hash(source)
         self._source = source
 
     @block_parameter
+    @invalidate_signature
+    @invalidate_work
     def set_previous(self, previous):
         if previous is not None:
             validate_public_key(previous)
@@ -637,24 +705,28 @@ class Block(object):
         self._previous = previous
 
     @block_parameter
+    @invalidate_signature
     def set_destination(self, destination):
         if destination is not None:
             validate_account_id(destination)
         self._destination = destination
 
     @block_parameter
+    @invalidate_signature
     def set_representative(self, representative):
         if representative is not None:
             validate_account_id(representative)
         self._representative = representative
 
     @block_parameter
+    @invalidate_signature
     def set_balance(self, balance):
         if balance is not None:
             validate_balance(balance)
         self._balance = balance
 
     @block_parameter
+    @invalidate_signature
     def set_link(self, link):
         if link is not None:
             self._link = validate_block_hash(link)
@@ -664,6 +736,7 @@ class Block(object):
             self._link_as_account = ZERO_ACCOUNT_ID
 
     @block_parameter
+    @invalidate_signature
     def set_link_as_account(self, link_as_account):
         if link_as_account is not None:
             self._link_as_account = validate_account_id(link_as_account)
@@ -674,6 +747,7 @@ class Block(object):
             self._link_as_account = ZERO_ACCOUNT_ID
 
     @block_parameter
+    @invalidate_signature
     def set_signature(self, signature):
         if signature is not None:
             self._signature = parse_signature(signature)
@@ -681,6 +755,7 @@ class Block(object):
             self._signature = None
 
     @block_parameter
+    @invalidate_work
     def set_work(self, work):
         if work is not None:
             self._work = work
