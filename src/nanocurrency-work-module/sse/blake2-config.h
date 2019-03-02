@@ -15,11 +15,10 @@
 #ifndef BLAKE2_CONFIG_H
 #define BLAKE2_CONFIG_H
 
-/* These don't work everywhere */
-#if defined(__SSE2__) || defined(__x86_64__) || defined(__amd64__)
+// Just define it directly, supported widely.
 #define HAVE_SSE2
-#endif
 
+/* These don't work everywhere */
 #if defined(__SSSE3__)
 #define HAVE_SSSE3
 #endif
@@ -59,14 +58,6 @@
 #ifndef HAVE_SSSE3
 #define HAVE_SSSE3
 #endif
-#endif
-
-#ifdef HAVE_SSSE3
-#define HAVE_SSE2
-#endif
-
-#if !defined(HAVE_SSE2)
-#error "This code requires at least SSE2."
 #endif
 
 #endif
