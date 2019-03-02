@@ -35,3 +35,6 @@ class InvalidPrivateKey(ValueError):
 
 class InvalidPublicKey(ValueError):
     """The NANO public key is invalid."""
+
+class CantReachServer(ValueError):
+    """Client can't reach remote serve."""

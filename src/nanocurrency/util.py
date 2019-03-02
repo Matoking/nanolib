@@ -3,6 +3,10 @@ from hashlib import blake2b
 from ed25519_blake2b import VerifyingKey, SigningKey
 from bitarray import bitarray
 
+from .exceptions import CantReachServer
+
+import requests
+import json
 import binascii
 import struct
 import array
@@ -13,7 +17,7 @@ __all__ = (
     "hex_to_uint4", "dec_to_hex", "uint_convert_precision",
     "uint4_to_bytes", "bytes_to_uint4", "bytes_to_uint5", "uint4_to_uint5",
     "uint5_to_uint4", "BASE32_LETTERS", "uint5_to_base32", "bytes_to_base32",
-    "base32_to_uint5", "hex_to_base32", "is_hex"
+    "base32_to_uint5", "hex_to_base32", "is_hex", "rpc_request"
 )
 
 
@@ -93,3 +97,20 @@ def is_hex(h):
         return True
     except ValueError:
         return False
+
+def rpc_request(uri, data, timeout=None):
+    data = json.dumps(data)
+    headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
+    try:
+        response = requests.post(   uri, 
+                                    data = data, 
+                                    headers = headers, 
+                                    timeout = timeout )
+
+        if not response.ok:
+            return None
+        resp_dict = json.loads(response.text)
+    except:
+        raise CantReachServer("Timeout or invalid uri")
+    finally:
+        return resp_dict
