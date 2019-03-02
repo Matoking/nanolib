@@ -110,7 +110,6 @@ def rpc_request(uri, data, timeout=None):
         if not response.ok:
             return None
         resp_dict = json.loads(response.text)
+        return resp_dict
     except:
         raise CantReachServer("Timeout or invalid uri")
-    finally:
-        return resp_dict
