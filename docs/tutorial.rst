@@ -159,7 +159,8 @@ to the previous block.
    and that we're sending 500,000,000,000,000,000,000,000,000,000 raw (or 0.5 Mnano)
    to the recipient.
 
-.
+..
+
 .. code-block:: python
 
    >>> block_b = Block(

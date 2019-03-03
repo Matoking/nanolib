@@ -8,6 +8,7 @@ from nanocurrency.work import _work
 
 def run_speed_tests():
     def pow_solve_speed_test():
+        HASHES_PER_ITERATION = 250000
         ITERATIONS = 20
 
         # Get supported CPU instruction sets
@@ -31,7 +32,7 @@ def run_speed_tests():
             ).timeit(ITERATIONS)
 
             # How many hashes per second?
-            rate = int((1000000 * ITERATIONS) / elapsed)
+            rate = int((HASHES_PER_ITERATION * ITERATIONS) / elapsed)
 
             print(
                 "BLAKE2b PoW ({flag}){used} speed: {rate} hashes/s".format(
