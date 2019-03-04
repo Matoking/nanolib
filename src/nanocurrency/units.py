@@ -46,11 +46,12 @@ Or in other words:
 """
 import functools
 import enum
-from decimal import Decimal, getcontext
+from decimal import Decimal, Inexact, getcontext
 
 # Increase precision for Decimals in order to make it suitable for
 # handling NANO denominations
 getcontext().prec = 39
+getcontext().traps[Inexact] = 1
 
 
 __all__ = (

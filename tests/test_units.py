@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, Inexact
 
 import pytest
 from nanocurrency.units import convert, NanoDenomination
@@ -80,3 +80,14 @@ def test_max_nano_value():
         source=NanoDenomination.RAW,
         target=NanoDenomination.MEGANANO
     ) == Decimal("340282366.920938463463374607431768211455")
+
+
+def test_inexact_conversion():
+    with pytest.raises(Inexact):
+        # The amount to convert is more precise than a single raw.
+        # Ensure an exception is raised to prevent precision loss.
+        convert(
+            Decimal("340282366.9209384634633746074317682114506"),
+            source=NanoDenomination.RAW,
+            target=NanoDenomination.MEGANANO
+        )

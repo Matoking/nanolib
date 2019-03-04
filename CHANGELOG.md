@@ -6,7 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
- - 'Block.has_valid_work' and 'Block.has_valid_signature' properties are cached to prevent redundant work
+ - `Block.has_valid_work` and `Block.has_valid_signature` properties are cached to prevent redundant work.
+
+### Fixed
+ - Raise a `decimal.Inexact` exception when trying to convert amounts with higher precision than a single raw.
 
 ## 0.1 - 2019-03-01
 ### Added
