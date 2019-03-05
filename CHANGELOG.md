@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
  - `Block.has_valid_work` and `Block.has_valid_signature` properties are cached to prevent redundant work.
 
+### Changed
+ - Improved performance when encoding or decoding account IDs
+
 ### Fixed
  - Raise a `decimal.Inexact` exception when trying to convert amounts with higher precision than a single raw.
 

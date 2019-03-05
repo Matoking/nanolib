@@ -1,25 +1,8 @@
-from hashlib import blake2b
-
-from ed25519_blake2b import VerifyingKey, SigningKey
 from bitarray import bitarray
 
-import binascii
-import struct
-import array
-import random
-import sys
-
 __all__ = (
-    "hex_to_uint4", "dec_to_hex", "uint_convert_precision",
-    "uint4_to_bytes", "bytes_to_uint4", "bytes_to_uint5", "uint4_to_uint5",
-    "uint5_to_uint4", "BASE32_LETTERS", "uint5_to_base32", "bytes_to_base32",
-    "base32_to_uint5", "hex_to_base32", "is_hex"
+    "dec_to_hex", "is_hex", "nbase32_to_bytes", "bytes_to_nbase32"
 )
-
-
-def hex_to_uint4(h):
-    h = "".join(["0" + c for c in h])
-    return array.array("B", bytes.fromhex(h))
 
 
 def dec_to_hex(d, n):
@@ -27,64 +10,54 @@ def dec_to_hex(d, n):
     # return "%0.{bytes}X".format(bytes=n*2) % d
 
 
-def uint_convert_precision(uints, source=4, dest=8):
+NBASE32_LETTERS = b'13456789abcdefghijkmnopqrstuwxyz'
+NBASE32_TABLE = {}
+NBASE32_REVERSE_TABLE = {}
+
+for i, c in enumerate(NBASE32_LETTERS):
+    NBASE32_TABLE[c] = bitarray(format(i, "05b"))
+    NBASE32_REVERSE_TABLE[i] = str(bytes([c]), "utf-8")
+
+
+def nbase32_to_bytes(nbase32):
+    nbase32 = bytes(nbase32, "utf-8")
     bits = bitarray()
+    for c in nbase32:
+        bits.extend(NBASE32_TABLE[c])
 
-    for v in uints:
-        bits.extend("{{0:0{}b}}".format(source).format(v))
+    leftover = len(bits) % 8
 
-    dest_values = []
+    if leftover:
+        # Truncate to a multiple of 8 bits if necessary
+        bits = bits[leftover:]
 
-    bit_count = len(bits)
-    for i in range(0, bit_count, dest):
-        if (i+dest) > bit_count:
-            continue
-
-        dest_values.append(int(bits[i:i+dest].to01(), 2))
-
-    return dest_values
+    return bits.tobytes()
 
 
-def uint4_to_bytes(uint4):
-    return bytes(uint_convert_precision(uint4, 4, 8))
+PADDING = bitarray([0, 0, 0])
 
 
-def bytes_to_uint4(b):
-    return uint_convert_precision(b, 8, 4)
+def bytes_to_nbase32(b):
+    bits = bitarray()
+    if isinstance(b, bytearray):
+        b = bytes(b)
+    bits.frombytes(b)
 
+    leftover = len(bits) % 5
 
-def bytes_to_uint5(b):
-    return uint_convert_precision(b, 8, 5)
+    if leftover != 0:
+        # Zero-pad the bitarray to a multiple of 5 bits if necessary
+        bits = bitarray([0]*(5 - (leftover))) + bits
 
+    output = []
 
-def uint4_to_uint5(uint4):
-    return uint_convert_precision(uint4, 4, 5)
+    for i in range(0, len(bits), 5):
+        # Right shift each 8-bit int to get the intended 5-bit value
+        output.append(bits[i:i+5].tobytes()[0] >> 3)
 
-
-def uint5_to_uint4(uint5):
-    return uint_convert_precision(uint5, 5, 4)
-
-
-BASE32_LETTERS = "13456789abcdefghijkmnopqrstuwxyz"
-
-
-def uint5_to_base32(uint5):
-    return "".join([BASE32_LETTERS[u] for u in uint5])
-
-
-def bytes_to_base32(b):
-    uint5 = bytes_to_uint5(b)
-
-    return uint5_to_base32(uint5)
-
-
-def base32_to_uint5(base32):
-    return [BASE32_LETTERS.index(c) for c in base32]
-
-
-def hex_to_base32(h):
-    b = binascii.unhexlify(h)
-    return bytes_to_base32(b)
+    return "".join([
+        NBASE32_REVERSE_TABLE[i] for i in output
+    ])
 
 
 def is_hex(h):

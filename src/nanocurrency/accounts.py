@@ -21,8 +21,7 @@ from .exceptions import (
     InvalidSeed, InvalidAccount, InvalidPublicKey, InvalidPrivateKey
 )
 from .util import (
-    uint4_to_uint5, uint5_to_uint4, uint5_to_base32, base32_to_uint5,
-    uint4_to_bytes, hex_to_uint4, dec_to_hex, bytes_to_uint4, is_hex
+    dec_to_hex, is_hex, nbase32_to_bytes, bytes_to_nbase32
 )
 
 
@@ -206,22 +205,13 @@ def get_account_id(*, public_key=None, private_key=None, prefix=None):
         """
         validate_public_key(public_key)
 
-        key_hash = blake2b(
-            binascii.unhexlify(public_key), digest_size=5).digest()
-        key_hash = bytearray(key_hash)
-        key_hash.reverse()
-        checksum = uint5_to_base32(
-            uint4_to_uint5(
-                bytes_to_uint4(
-                    key_hash
-                )
-            )
-        )
-        account = uint5_to_base32(
-            uint4_to_uint5(
-                hex_to_uint4("0%s" % public_key)
-            )
-        )
+        public_key_bytes = binascii.unhexlify(public_key)
+
+        account = bytes_to_nbase32(public_key_bytes)
+        checksum_bytes = blake2b(public_key_bytes, digest_size=5).digest()
+        checksum_bytes = bytearray(checksum_bytes)
+        checksum_bytes.reverse()
+        checksum = bytes_to_nbase32(checksum_bytes)
 
         return "{prefix}{account}{checksum}".format(
             prefix=prefix, account=account, checksum=checksum)
@@ -291,18 +281,18 @@ def get_account_public_key(*, account_id=None, private_key=None):
         if not re.match(valid_regex, account_rest):
             raise InvalidAccount("Invalid NANO address")
 
-        key_uint4 = uint5_to_uint4(base32_to_uint5(account_rest[0:52]))[1:]
-        hash_uint4 = uint5_to_uint4(base32_to_uint5(account_rest[52:60]))
-        key_bytes = uint4_to_bytes(key_uint4)
+        public_key_bytes = nbase32_to_bytes(account_rest[0:52])
+        account_checksum_bytes = nbase32_to_bytes(account_rest[52:60])
 
-        checksum = bytearray(blake2b(key_bytes, digest_size=5).digest())
-        checksum.reverse()
-        checksum = bytes_to_uint4(checksum)
+        key_checksum_bytes = bytearray(
+            blake2b(public_key_bytes, digest_size=5).digest()
+        )
+        key_checksum_bytes.reverse()
 
-        if checksum != hash_uint4:
+        if key_checksum_bytes != account_checksum_bytes:
             raise InvalidAccount("Invalid checksum")
 
-        return binascii.hexlify(uint4_to_bytes(key_uint4)).decode()
+        return binascii.hexlify(public_key_bytes).decode()
 
     def _from_private_key(private_key):
         _, public_key = get_account_key_pair(private_key=private_key)
