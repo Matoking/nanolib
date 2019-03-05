@@ -1,7 +1,17 @@
-include README.rst LICENSE pytest.ini requirements.txt
-recursive-include tests *.py
-include versioneer.py
-include src/nanocurrency/_version.py
+include MANIFEST.in LICENSE versioneer.py *.md
+include src/nanocurrency-work-module/work.c
 
+graft src/nanocurrency
 graft src/nanocurrency-work-module/ref
 graft src/nanocurrency-work-module/sse
+
+exclude tox.ini requirements_dev.txt *.yml
+exclude src/nanocurrency-work-module/README.md
+
+prune docs
+prune tests
+prune examples
+prune src/nanocurrency-work-module/neon
+
+global-exclude *.py[cod]
+global-exclude __pycache__
