@@ -15,3 +15,4 @@ prune src/nanocurrency-work-module/neon
 
 global-exclude *.py[cod]
 global-exclude __pycache__
+global-exclude *.so
