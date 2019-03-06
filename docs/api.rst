@@ -5,29 +5,29 @@ API
 Accounts
 ========
 
-.. automodule:: nanocurrency.accounts
+.. automodule:: nanolib.accounts
    :members:
 
 Blocks
 ======
 
-.. automodule:: nanocurrency.blocks
+.. automodule:: nanolib.blocks
    :members:
 
 Proof-of-work
 =============
 
-.. automodule:: nanocurrency.work
+.. automodule:: nanolib.work
    :members:
 
 Units
 =====
 
-.. automodule:: nanocurrency.units
+.. automodule:: nanolib.units
    :members:
 
 Exceptions
 ==========
 
-.. automodule:: nanocurrency.exceptions
+.. automodule:: nanolib.exceptions
    :members:

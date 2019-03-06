@@ -3,7 +3,7 @@ import cpuinfo
 
 from hashlib import blake2b
 
-from nanocurrency.work import _work
+from nanolib.work import _work
 
 
 def run_speed_tests():
@@ -25,7 +25,7 @@ def run_speed_tests():
                 ("nonce = 0\n"
                  "while nonce < 1000000:\n"
                  "    nonce = _work.do_work(block_hash, nonce, (2**64)-1)"),
-                ("from nanocurrency import _work_{} as _work\n"
+                ("from nanolib import _work_{} as _work\n"
                  "from hashlib import blake2b\n"
                  "block_hash = blake2b(\n"
                  "    b'fakeBlock', digest_size=32).digest()\n".format(flag))
@@ -49,7 +49,7 @@ def run_speed_tests():
              "    a = generate_account_id(seed, i)\n"
              "    b = generate_account_key_pair(seed, i)\n"
              "    i += 1"),
-            ("from nanocurrency.accounts import generate_seed, generate_account_id, generate_account_key_pair\n"
+            ("from nanolib.accounts import generate_seed, generate_account_id, generate_account_key_pair\n"
              "seed = generate_seed()")
         ).timeit(ITERATIONS)
 
@@ -64,8 +64,8 @@ def run_speed_tests():
         elapsed = timeit.Timer(
             ("block.signature = None\n"
              "block.sign(key_pair.private)"),
-            ("from nanocurrency.blocks import Block\n"
-             "from nanocurrency.accounts import generate_seed, generate_account_id, generate_account_key_pair\n"
+            ("from nanolib.blocks import Block\n"
+             "from nanolib.accounts import generate_seed, generate_account_id, generate_account_key_pair\n"
              "seed = generate_seed()\n"
              "account_id = generate_account_id(seed, 0)\n"
              "key_pair = generate_account_key_pair(seed, 0)\n"
@@ -84,8 +84,8 @@ def run_speed_tests():
 
         elapsed = timeit.Timer(
             ("block.verify_signature()"),
-            ("from nanocurrency.blocks import Block\n"
-             "from nanocurrency.accounts import generate_seed, generate_account_id, generate_account_key_pair\n"
+            ("from nanolib.blocks import Block\n"
+             "from nanolib.accounts import generate_seed, generate_account_id, generate_account_key_pair\n"
              "seed = generate_seed()\n"
              "account_id = generate_account_id(seed, 0)\n"
              "key_pair = generate_account_key_pair(seed, 0)\n"

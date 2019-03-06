@@ -42,8 +42,8 @@ def get_config():
     cfg.VCS = "git"
     cfg.style = "pep440"
     cfg.tag_prefix = ""
-    cfg.parentdir_prefix = "pynanocurrency-"
-    cfg.versionfile_source = "src/nanocurrency/_version.py"
+    cfg.parentdir_prefix = "nanolib-"
+    cfg.versionfile_source = "src/nanolib/_version.py"
     cfg.verbose = False
     return cfg
 

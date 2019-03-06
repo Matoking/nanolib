@@ -16,10 +16,10 @@ from setuptools.command.test import test as TestCommand
 import versioneer
 
 # Package meta-data.
-NAME = 'pynanocurrency'
+NAME = 'nanolib'
 DESCRIPTION = \
     'Python library for working with the NANO cryptocurrency protocol'
-URL = 'https://github.com/Matoking/pynanocurrency'
+URL = 'https://github.com/Matoking/nanolib'
 EMAIL = 'jannepulk@gmail.com'
 AUTHOR = 'Janne Pulkkinen'
 REQUIRES_PYTHON = '>=3.6.0'
@@ -30,57 +30,57 @@ REQUIRED = [
 ]
 
 NANOCURRENCY_WORK_REF = Extension(
-    "nanocurrency._work_ref",
+    "nanolib._work_ref",
     include_dirs=[
-        "src/nanocurrency-work-module/ref",
+        "src/nanolib-work-module/ref",
     ],
     sources=[
-        "src/nanocurrency-work-module/work.c",
-    ] + glob.glob("src/nanocurrency-work-module/ref/*.c"),
+        "src/nanolib-work-module/work.c",
+    ] + glob.glob("src/nanolib-work-module/ref/*.c"),
     extra_compile_args=["-DWORK_REF"]
 )
 
 NANOCURRENCY_WORK_SSE2 = Extension(
-    "nanocurrency._work_sse2",
+    "nanolib._work_sse2",
     include_dirs=[
-        "src/nanocurrency-work-module/sse",
+        "src/nanolib-work-module/sse",
     ],
     sources=[
-        "src/nanocurrency-work-module/work.c",
-    ] + glob.glob("src/nanocurrency-work-module/sse/*.c"),
+        "src/nanolib-work-module/work.c",
+    ] + glob.glob("src/nanolib-work-module/sse/*.c"),
     extra_compile_args=["-DWORK_SSE2", "-msse2"]
 )
 
 NANOCURRENCY_WORK_SSSE3 = Extension(
-    "nanocurrency._work_ssse3",
+    "nanolib._work_ssse3",
     include_dirs=[
-        "src/nanocurrency-work-module/sse",
+        "src/nanolib-work-module/sse",
     ],
     sources=[
-        "src/nanocurrency-work-module/work.c",
-    ] + glob.glob("src/nanocurrency-work-module/sse/*.c"),
+        "src/nanolib-work-module/work.c",
+    ] + glob.glob("src/nanolib-work-module/sse/*.c"),
     extra_compile_args=["-DWORK_SSSE3", "-mssse3"]
 )
 
 NANOCURRENCY_WORK_SSE4_1 = Extension(
-    "nanocurrency._work_sse4_1",
+    "nanolib._work_sse4_1",
     include_dirs=[
-        "src/nanocurrency-work-module/sse",
+        "src/nanolib-work-module/sse",
     ],
     sources=[
-        "src/nanocurrency-work-module/work.c",
-    ] + glob.glob("src/nanocurrency-work-module/sse/*.c"),
+        "src/nanolib-work-module/work.c",
+    ] + glob.glob("src/nanolib-work-module/sse/*.c"),
     extra_compile_args=["-DWORK_SSE4_1", "-msse4.1"]
 )
 
 NANOCURRENCY_WORK_AVX = Extension(
-    "nanocurrency._work_avx",
+    "nanolib._work_avx",
     include_dirs=[
-        "src/nanocurrency-work-module/sse",
+        "src/nanolib-work-module/sse",
     ],
     sources=[
-        "src/nanocurrency-work-module/work.c",
-    ] + glob.glob("src/nanocurrency-work-module/sse/*.c"),
+        "src/nanolib-work-module/work.c",
+    ] + glob.glob("src/nanolib-work-module/sse/*.c"),
     extra_compile_args=["-DWORK_AVX", "-mavx"]
 )
 
@@ -197,9 +197,9 @@ setup(
         NANOCURRENCY_WORK_SSE4_1,
         NANOCURRENCY_WORK_AVX,
     ],
-    packages=["nanocurrency"],
+    packages=["nanolib"],
     package_data={"": ["LICENSE"]},
-    package_dir={"nanocurrency": "src/nanocurrency"},
+    package_dir={"nanolib": "src/nanolib"},
     install_requires=REQUIRED,
     setup_requires=["sphinx"],
     tests_require=["pytest"],

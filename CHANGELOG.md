@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - `Block.has_valid_work` and `Block.has_valid_signature` properties are cached to prevent redundant work.
 
 ### Changed
+ - PyPI package `pynanocurrency` and module `nanocurrency` have both been renamed to `nanolib`
  - Improved performance when encoding or decoding account IDs
 
 ### Fixed
@@ -18,4 +19,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release
 
-[Unreleased]: https://github.com/Matoking/pynanocurrency/compare/0.1...HEAD
+[Unreleased]: https://github.com/Matoking/nanolib/compare/0.1...HEAD

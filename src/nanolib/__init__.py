@@ -1,8 +1,8 @@
 """
-nanocurrency
-~~~~~~~~~~~~
+nanolib
+~~~~~~~
 
-pynanocurrency is a Python library allowing to work with NANO cryptocurrency
+nanolib is a Python library allowing to work with NANO cryptocurrency
 functions such as block creation and manipulation, account generation and
 proof-of-work validation and solving
 """

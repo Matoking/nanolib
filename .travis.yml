@@ -12,7 +12,7 @@ install:
   - pip install codecov
 script:
   - python setup.py build
-  - pytest --cov=nanocurrency --cov-report term --cov-report xml tests
+  - pytest --cov=nanolib --cov-report term --cov-report xml tests
   - python setup.py speed
 after_success:
   - codecov

@@ -1,6 +1,6 @@
 """
-nanocurrency.accounts
-~~~~~~~~~~~~~~~~~~~~~
+nanolib.accounts
+~~~~~~~~~~~~~~~~
 
 Methods for creating keys and IDs for NANO accounts and dealing with
 wallet seeds
@@ -188,7 +188,7 @@ def get_account_id(*, public_key=None, private_key=None, prefix=None):
 
      Usage::
 
-      >>> from nanocurrency.accounts import get_account_id, AccountIDPrefix
+      >>> from nanolib.accounts import get_account_id, AccountIDPrefix
       >>> get_account_id(private_key="2"*64)
       'xrb_1iwamgozb5ckj9zzojbnb79485dfiw8jegedzwzuzy5b4a19cbs8b4tsdzo3'
       >>> get_account_id(public_key="2"*64)

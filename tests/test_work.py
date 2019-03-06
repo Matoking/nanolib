@@ -4,10 +4,10 @@ import pytest
 
 import time
 
-from nanocurrency.work import (
+from nanolib.work import (
     parse_work, validate_work, solve_work
 )
-from nanocurrency.exceptions import InvalidWork
+from nanolib.exceptions import InvalidWork
 
 
 VALID_BLOCK_HASH = \
@@ -19,14 +19,14 @@ def test_low_threshold_used_for_tests():
     """
     Check that a lower work threshold is used for tests
     """
-    from nanocurrency.work import WORK_THRESHOLD
+    from nanolib.work import WORK_THRESHOLD
 
     assert WORK_THRESHOLD < int("ffffffc000000000", 16)
 
 
 def test_parse_work():
     """
-    Test nanocurrency.parse_work
+    Test nanolib.parse_work
     """
     with pytest.raises(InvalidWork):
         # Work has to be 16 chars long

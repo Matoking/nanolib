@@ -53,7 +53,7 @@ def parse_work(work):
 
     .. note:: This method only checks that the work's format is correct.
               To validate a proof-of-work,
-              use :func:`nanocurrency.work.validate_work`
+              use :func:`nanolib.work.validate_work`
 
     :param str work: Work as a 16-character hex string
     :raises InvalidWork: If the work is invalid

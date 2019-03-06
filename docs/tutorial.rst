@@ -1,7 +1,7 @@
 Tutorial
 ========
 
-This tutorial will illustrate the usage of the `pynanocurrency` library
+This tutorial will illustrate the usage of the `nanolib` library
 by describing the steps required to open an account in the NANO network,
 starting from generating an account to receiving some NANO, and then sending
 it on. Naturally, you will need a small amount of NANO; you may be able to get
@@ -18,9 +18,9 @@ third-party NanoVault use a 64-character hexadecimal string as a representation
 of the seed value. This library uses the same representation as well.
 
 Start by importing the library and generating a seed using the
-:func:`nanocurrency.blocks.generate_seed` function::
+:func:`nanolib.blocks.generate_seed` function::
 
-   >>> from nanocurrency import generate_seed
+   >>> from nanolib import generate_seed
    >>> seed = generate_seed()
    >>> seed
    'd290d319ce3c2cbb675b023e5383a767415d7444975a2ea121848fc986954568'
@@ -28,7 +28,7 @@ Start by importing the library and generating a seed using the
 You should now have your own seed string that's formatted like the one above.
 Now, let's generate the first NANO account for this seed.
 
-   >>> from nanocurrency import generate_account_id
+   >>> from nanolib import generate_account_id
    >>> account_id = generate_account_id(seed, 0)
    'xrb_1bum9d7gkjcca8n8acbbwiauarffa4i9qgoeey59t4t8cpffimupua6wr99u'
 
@@ -61,7 +61,7 @@ to receive the NANO we've sent ourselves.
 
 ..
 
-   >>> from nanocurrency import Block
+   >>> from nanolib import Block
    >>> block = Block(
    >>>     block_type="state",
    >>>     account="xrb_1bum9d7gkjcca8n8acbbwiauarffa4i9qgoeey59t4t8cpffimupua6wr99u",
@@ -73,13 +73,13 @@ to receive the NANO we've sent ourselves.
 To broadcast the block in NANO and to pocket the NANO we sent ourselves,
 we need to solve a proof-of-work and sign the block.
 You can check for both using the attributes
-:attr:`nanocurrency.blocks.Block.has_valid_work` and :attr:`nanocurrency.blocks.Block.has_valid_signature`
+:attr:`nanolib.blocks.Block.has_valid_work` and :attr:`nanolib.blocks.Block.has_valid_signature`
 accordingly. Both need to be added into the block before the block is complete
 and it can be broadcasted: you can check for this using the block attribute
-:attr:`nanocurrency.blocks.Block.complete`.
+:attr:`nanolib.blocks.Block.complete`.
 
 We'll start by solving the proof-of-work, which is easy enough:
-just call :meth:`nanocurrency.blocks.Block.solve_work` and wait for a few
+just call :meth:`nanolib.blocks.Block.solve_work` and wait for a few
 seconds. The time to solve the proof-of-work will vary depending on your luck
 and the performance of your machine.
 
@@ -93,10 +93,10 @@ and the performance of your machine.
    True
 
 The next step is signing the block. For that, we can use
-:func:`nanocurrency.accounts.generate_account_private_key` to derive the private
+:func:`nanolib.accounts.generate_account_private_key` to derive the private
 key for the account we created earlier.
 
-   >>> from nanocurrency import generate_account_private_key
+   >>> from nanolib import generate_account_private_key
    >>> private_key = generate_account_private_key('d290d319ce3c2cbb675b023e5383a767415d7444975a2ea121848fc986954568', 0)
    >>> block.sign(private_key)
    True
@@ -109,7 +109,7 @@ For this, you'll need a NANO endpoint that allows you to process JSON-formatted
 blocks. The reference *NANO Node and Developer Wallet* `nano_wallet` will
 work fine for this.
 To broadcast the block, you can dump the block in JSON format using
-:meth:`nanocurrency.blocks.Block.json`.
+:meth:`nanolib.blocks.Block.json`.
 
 .. code-block:: python
 
@@ -149,7 +149,7 @@ it `block_b`.
 
 Decide a NANO account to send some NANO to and the amount,
 and then create the next block. Note that we'll have to refer to the earlier
-block we made by setting the attribute :attr:`nanocurrency.blocks.Block.previous`
+block we made by setting the attribute :attr:`nanolib.blocks.Block.previous`
 to the previous block.
 
 .. note::
@@ -186,13 +186,13 @@ Wrapping it up
 To wrap up this tutorial, here's the entire process from start to finish
 in a single commented Python script.
 
-This tutorial only scraped the surface of what `pynanocurrency` is capable
+This tutorial only scraped the surface of what `nanolib` is capable
 of. You can continue by reading the API documentation if you're interested
 in what else the library can do.
 
 .. code-block:: python
 
-   from nanocurrency import Block, generate_account_id, generate_account_private_key
+   from nanolib import Block, generate_account_id, generate_account_private_key
 
    import requests
 

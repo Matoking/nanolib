@@ -1,10 +1,10 @@
-pynanocurrency
-==============
+nanolib
+=======
 
-[![image](https://img.shields.io/pypi/v/pynanocurrency.svg)](https://pypi.org/project/pynanocurrency/)
-[![codecov](https://codecov.io/gh/Matoking/pynanocurrency/branch/master/graph/badge.svg)](https://codecov.io/gh/Matoking/pynanocurrency)
-[![Build Status](https://travis-ci.com/Matoking/pynanocurrency.png?branch=master)](https://travis-ci.com/Matoking/pynanocurrency)
-[![image](https://readthedocs.org/projects/pynanocurrency/badge/?version=latest)](https://pynanocurrency.readthedocs.io/en/latest/?badge=latest)
+[![image](https://img.shields.io/pypi/v/nanolib.svg)](https://pypi.org/project/nanolib/)
+[![codecov](https://codecov.io/gh/Matoking/nanolib/branch/master/graph/badge.svg)](https://codecov.io/gh/Matoking/nanolib)
+[![Build Status](https://travis-ci.com/Matoking/nanolib.png?branch=master)](https://travis-ci.com/Matoking/nanolib)
+[![image](https://readthedocs.org/projects/nanolib/badge/?version=latest)](https://nanolib.readthedocs.io/en/latest/?badge=latest)
 
 
 A set of tools for handling functions related to the NANO cryptocurrency protocol.
@@ -24,7 +24,7 @@ Features
 Documentation
 =============
 
-An online copy of the documentation can be found at [Read the Docs](https://pynanocurrency.readthedocs.io/en/latest/).
+An online copy of the documentation can be found at [Read the Docs](https://nanolib.readthedocs.io/en/latest/).
 
 You can also build the documentation yourself by running `python setup.py build_sphinx`.
 

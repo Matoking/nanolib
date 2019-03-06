@@ -1,6 +1,6 @@
 """
-nanocurrency.blocks
-~~~~~~~~~~~~~~~~~~~
+nanolib.blocks
+~~~~~~~~~~~~~~
 
 Methods to work with NANO blocks and a :class:`Block` class to construct
 (either manually or from JSON) and process NANO blocks
@@ -541,7 +541,7 @@ class Block(object):
         .. note::
 
            This method assumes that NANO mainnet threshold is used. In any
-           other case use :meth:`nanocurrency.blocks.Block.verify_work`
+           other case use :meth:`nanolib.blocks.Block.verify_work`
            instead.
 
         :return: True if the block has valid work that meets the threshold, \
@@ -579,8 +579,8 @@ class Block(object):
         """BLAKE2b hash that requires a valid PoW
 
         For open blocks this is the public key derived from
-        :attr:`nanocurrency.blocks.Block.account`. For other types of blocks,
-        :attr:`nanocurrency.blocks.Block.previous` is used as the hash.
+        :attr:`nanolib.blocks.Block.account`. For other types of blocks,
+        :attr:`nanolib.blocks.Block.previous` is used as the hash.
 
         :return: BLAKE2b hash used to generate a PoW
         :rtype: str

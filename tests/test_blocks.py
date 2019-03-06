@@ -5,8 +5,8 @@ import json
 
 from tests.data import BLOCKS
 
-from nanocurrency.blocks import Block, MAX_BALANCE
-from nanocurrency.exceptions import (
+from nanolib.blocks import Block, MAX_BALANCE
+from nanolib.exceptions import (
     InvalidAccount, InvalidBlock, InvalidSignature, InvalidWork,
     InvalidBlockHash, InvalidBalance, InvalidPublicKey)
 

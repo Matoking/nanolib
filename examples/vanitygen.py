@@ -13,7 +13,7 @@ $ python vanitygen.py -t 8 nano
 $ python vanitygen.py -t 8 --only-prefix nano
 
 NOTE: This implementation is a lot slower than a native implementation, and
-      is provided as an example of how to use the 'nanocurrency' Python
+      is provided as an example of how to use the 'nanolib' Python
       library
 """
 
@@ -23,7 +23,7 @@ import argparse
 import sys
 import time
 
-from nanocurrency import get_account_id
+from nanolib import get_account_id
 
 
 ALLOWED_CHARS = "13456789abcdefghijkmnopqrstuwxyz"
