@@ -1,6 +1,8 @@
 pynanocurrency
 ==============
 
+THIS PACKAGE HAS BEEN RENAMED TO nanolib. NO FURTHER UPDATES WILL BE MADE TO THIS PYPI PACKAGE.
+
 [![image](https://img.shields.io/pypi/v/pynanocurrency.svg)](https://pypi.org/project/pynanocurrency/)
 [![codecov](https://codecov.io/gh/Matoking/pynanocurrency/branch/master/graph/badge.svg)](https://codecov.io/gh/Matoking/pynanocurrency)
 [![Build Status](https://travis-ci.com/Matoking/pynanocurrency.png?branch=master)](https://travis-ci.com/Matoking/pynanocurrency)
