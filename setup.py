@@ -32,55 +32,55 @@ REQUIRED = [
 NANOCURRENCY_WORK_REF = Extension(
     "nanolib._work_ref",
     include_dirs=[
-        "src/nanolib-work-module/ref",
+        "src/nanolib-work-module/BLAKE2/ref",
     ],
     sources=[
         "src/nanolib-work-module/work.c",
-    ] + glob.glob("src/nanolib-work-module/ref/*.c"),
+    ] + glob.glob("src/nanolib-work-module/BLAKE2/ref/blake2b*.c"),
     extra_compile_args=["-DWORK_REF"]
 )
 
 NANOCURRENCY_WORK_SSE2 = Extension(
     "nanolib._work_sse2",
     include_dirs=[
-        "src/nanolib-work-module/sse",
+        "src/nanolib-work-module/BLAKE2/sse",
     ],
     sources=[
         "src/nanolib-work-module/work.c",
-    ] + glob.glob("src/nanolib-work-module/sse/*.c"),
+    ] + glob.glob("src/nanolib-work-module/BLAKE2/sse/blake2b*.c"),
     extra_compile_args=["-DWORK_SSE2", "-msse2"]
 )
 
 NANOCURRENCY_WORK_SSSE3 = Extension(
     "nanolib._work_ssse3",
     include_dirs=[
-        "src/nanolib-work-module/sse",
+        "src/nanolib-work-module/BLAKE2/sse",
     ],
     sources=[
         "src/nanolib-work-module/work.c",
-    ] + glob.glob("src/nanolib-work-module/sse/*.c"),
+    ] + glob.glob("src/nanolib-work-module/BLAKE2/sse/blake2b*.c"),
     extra_compile_args=["-DWORK_SSSE3", "-mssse3"]
 )
 
 NANOCURRENCY_WORK_SSE4_1 = Extension(
     "nanolib._work_sse4_1",
     include_dirs=[
-        "src/nanolib-work-module/sse",
+        "src/nanolib-work-module/BLAKE2/sse",
     ],
     sources=[
         "src/nanolib-work-module/work.c",
-    ] + glob.glob("src/nanolib-work-module/sse/*.c"),
+    ] + glob.glob("src/nanolib-work-module/BLAKE2/sse/blake2b*.c"),
     extra_compile_args=["-DWORK_SSE4_1", "-msse4.1"]
 )
 
 NANOCURRENCY_WORK_AVX = Extension(
     "nanolib._work_avx",
     include_dirs=[
-        "src/nanolib-work-module/sse",
+        "src/nanolib-work-module/BLAKE2/sse",
     ],
     sources=[
         "src/nanolib-work-module/work.c",
-    ] + glob.glob("src/nanolib-work-module/sse/*.c"),
+    ] + glob.glob("src/nanolib-work-module/BLAKE2/sse/blake2b*.c"),
     extra_compile_args=["-DWORK_AVX", "-mavx"]
 )
 
