@@ -14,7 +14,7 @@ def run_speed_tests():
         # Get supported CPU instruction sets
         cpu_flags = cpuinfo.get_cpu_info()["flags"]
 
-        all_flags = ["avx", "sse4_1", "ssse3", "sse2"]
+        all_flags = ["avx", "sse4_1", "ssse3", "sse2", "neon"]
         supported_flags = [
             flag for flag in all_flags
             if flag in cpu_flags

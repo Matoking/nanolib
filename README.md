@@ -15,8 +15,8 @@ Features
 * Create and deserialize legacy and universal blocks
 * Account generation from seed using the same algorithm as the original NANO wallet and NanoVault
 * Functions for converting between different NANO denominations
-* High performance cryptographic operations using C extensions (signing and verifying blocks, and solving block proof-of-work)
-  * Proof-of-work solving supports SSE2, SSSE3, SSE4.1 and AVX instruction sets for improved performance. The best supported implementation is selected at runtime with a fallback implementation with universal compatibility.
+* High performance cryptographic operations using C extensions (signing and verifying blocks, and generating block proof-of-work)
+  * Proof-of-work generation supports SSE2, SSSE3, SSE4.1, AVX and NEON instruction sets for improved performance. The best supported implementation is selected at runtime with a fallback implementation with universal compatibility.
 * Backed by automated tests
 * Compatible with Python 3.6 and up
 * Licensed under the very permissive *Creative Commons Zero* license

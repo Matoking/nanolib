@@ -7,7 +7,9 @@
 import glob
 import io
 import os
+import platform
 import sys
+from distutils.ccompiler import get_default_compiler
 from shutil import rmtree
 
 from setuptools import Command, Extension, setup
@@ -29,60 +31,85 @@ REQUIRED = [
     'bitarray>=0.8.1', 'ed25519-blake2b>=1.4', 'py-cpuinfo>=4'
 ]
 
-NANOCURRENCY_WORK_REF = Extension(
-    "nanolib._work_ref",
-    include_dirs=[
-        "src/nanolib-work-module/BLAKE2/ref",
-    ],
-    sources=[
-        "src/nanolib-work-module/work.c",
-    ] + glob.glob("src/nanolib-work-module/BLAKE2/ref/blake2b*.c"),
-    extra_compile_args=["-DWORK_REF"]
-)
 
-NANOCURRENCY_WORK_SSE2 = Extension(
-    "nanolib._work_sse2",
-    include_dirs=[
-        "src/nanolib-work-module/BLAKE2/sse",
-    ],
-    sources=[
-        "src/nanolib-work-module/work.c",
-    ] + glob.glob("src/nanolib-work-module/BLAKE2/sse/blake2b*.c"),
-    extra_compile_args=["-DWORK_SSE2", "-msse2"]
-)
+def get_compile_args(iset=None):
+    FLAGS = {
+        "unix": {
+            "avx": ["-DWORK_AVX", "-mavx"],
+            "sse4_1": ["-DWORK_SSE4_1", "-msse4.1"],
+            "ssse3": ["-DWORK_SSSE3", "-mssse3"],
+            "sse2": ["-DWORK_SSE2", "-msse2"],
+            "neon": ["-DWORK_NEON", "-mfpu=neon"],
+            None: ["-DWORK_REF"]
+        },
+        "msvc": {
+            "avx": ["/DWORK_AVX", "/arch:AVX", "/DHAVE_AVX", "/D__SSE4_1__"],
+            "sse4_1": ["/DWORK_SSE4_1", "/arch:SSE2", "/D__SSE4_1__"],
+            "ssse3": ["/DWORK_SSSE3", "/arch:SSE2", "/D__SSSE3__"],
+            "sse2": ["/DWORK_SSE2", "/arch:SSE2", "/D__SSE2__"],
+            "neon": ["/DWORK_NEON"],
+            None: ["/DWORK_REF"]
+        }
+    }
 
-NANOCURRENCY_WORK_SSSE3 = Extension(
-    "nanolib._work_ssse3",
-    include_dirs=[
-        "src/nanolib-work-module/BLAKE2/sse",
-    ],
-    sources=[
-        "src/nanolib-work-module/work.c",
-    ] + glob.glob("src/nanolib-work-module/BLAKE2/sse/blake2b*.c"),
-    extra_compile_args=["-DWORK_SSSE3", "-mssse3"]
-)
+    compiler = get_default_compiler()
 
-NANOCURRENCY_WORK_SSE4_1 = Extension(
-    "nanolib._work_sse4_1",
-    include_dirs=[
-        "src/nanolib-work-module/BLAKE2/sse",
-    ],
-    sources=[
-        "src/nanolib-work-module/work.c",
-    ] + glob.glob("src/nanolib-work-module/BLAKE2/sse/blake2b*.c"),
-    extra_compile_args=["-DWORK_SSE4_1", "-msse4.1"]
-)
+    try:
+        return FLAGS[compiler][iset]
+    except KeyError:
+        raise OSError("Compiler '{}' not supported.".format(compiler))
 
-NANOCURRENCY_WORK_AVX = Extension(
-    "nanolib._work_avx",
-    include_dirs=[
-        "src/nanolib-work-module/BLAKE2/sse",
-    ],
-    sources=[
-        "src/nanolib-work-module/work.c",
-    ] + glob.glob("src/nanolib-work-module/BLAKE2/sse/blake2b*.c"),
-    extra_compile_args=["-DWORK_AVX", "-mavx"]
-)
+
+SOURCE_ROOT = os.path.join("src", "nanolib-work-module", "BLAKE2")
+SOURCE_FILES = {
+    "ref": glob.glob(os.path.join(SOURCE_ROOT, "ref", "blake2b*.c")),
+    "sse": glob.glob(os.path.join(SOURCE_ROOT, "sse", "blake2b*.c")),
+    "neon": glob.glob(os.path.join(SOURCE_ROOT, "neon", "blake2b-*.c"))
+}
+
+
+def create_work_extension(source_name="ref", iset=None):
+    source_path = os.path.join(
+        "src", "nanolib-work-module", "BLAKE2", source_name
+    )
+    module_suffix = iset if iset else "ref"
+
+    return Extension(
+        "nanolib._work_{}".format(module_suffix),
+        include_dirs=[source_path],
+        sources=[
+            os.path.join("src", "nanolib-work-module", "work.c")
+        ] + SOURCE_FILES[source_name],
+        extra_compile_args=get_compile_args(iset)
+    )
+
+
+EXTENSIONS_TO_BUILD = []
+
+_machine = platform.machine()
+
+# https://stackoverflow.com/a/45125525
+_is_arm = _machine.startswith("arm") or _machine.startswith("aarch64")
+# 'AMD64' only appears on Windows
+_is_x86 = _machine.startswith("x86") or _machine in ("i386", "i686", "AMD64")
+
+
+if _is_x86:
+    EXTENSIONS_TO_BUILD = [
+        create_work_extension("sse", "avx"),
+        create_work_extension("sse", "sse4_1"),
+        create_work_extension("sse", "ssse3"),
+        create_work_extension("sse", "sse2"),
+        create_work_extension("ref")
+    ]
+elif _is_arm:
+    EXTENSIONS_TO_BUILD = [
+        create_work_extension("neon", "neon"),
+        create_work_extension("ref")
+    ]
+else:
+    EXTENSIONS_TO_BUILD = [create_work_extension("ref")]
+
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
@@ -190,13 +217,7 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    ext_modules=[
-        NANOCURRENCY_WORK_REF,
-        NANOCURRENCY_WORK_SSE2,
-        NANOCURRENCY_WORK_SSSE3,
-        NANOCURRENCY_WORK_SSE4_1,
-        NANOCURRENCY_WORK_AVX,
-    ],
+    ext_modules=EXTENSIONS_TO_BUILD,
     packages=["nanolib"],
     package_data={"": ["LICENSE"]},
     package_dir={"nanolib": "src/nanolib"},
@@ -214,6 +235,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
+        'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX :: Linux',
         'Topic :: Office/Business :: Financial',
     ],

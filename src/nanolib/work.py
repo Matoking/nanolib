@@ -31,10 +31,12 @@ if "avx" in _cpu_flags:
     from . import _work_avx as _work
 elif "sse4_1" in _cpu_flags:
     from . import _work_sse4_1 as _work
-elif "ssse3" in _cpu_flags:  # SSSE3
+elif "ssse3" in _cpu_flags:
     from . import _work_ssse3 as _work
-elif "sse2" in _cpu_flags:  # SSE2
+elif "sse2" in _cpu_flags:
     from . import _work_sse2 as _work
+elif "neon" in _cpu_flags:
+    from . import _work_neon as _work
 else:
     from . import _work_ref as _work
 

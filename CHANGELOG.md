@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+ - Add support for Windows (x86 and x86-64) using the MSVC compiler.
+ - Add support for Linux (ARM) using the GCC compiler.
+ - Add support for the NEON instruction set on ARM for better performance when generating PoW.
+
 ## [0.2] - 2019-03-07
 ### Added
  - `Block.has_valid_work` and `Block.has_valid_signature` properties are cached to prevent redundant work.
@@ -19,5 +25,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release
 
-[0.2]: https://github.com/Matoking/nanolib/compare/0.2...0.1
-[Unreleased]: https://github.com/Matoking/nanolib/compare/0.1...HEAD
+[Unreleased]: https://github.com/Matoking/nanolib/compare/0.2...HEAD
+[0.2]: https://github.com/Matoking/nanolib/compare/0.1...0.2

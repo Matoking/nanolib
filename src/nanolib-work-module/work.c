@@ -85,6 +85,8 @@ work_module = {
     "_work_sse4_1",
     #elif WORK_AVX
     "_work_avx",
+    #elif WORK_NEON
+    "_work_neon",
     #endif
     module_doc,
     -1,
@@ -109,6 +111,10 @@ PyMODINIT_FUNC PyInit__work_sse4_1(void) {
 }
 #elif WORK_AVX
 PyMODINIT_FUNC PyInit__work_avx(void) {
+    return PyModule_Create(&work_module);
+}
+#elif WORK_NEON
+PyMODINIT_FUNC PyInit__work_neon(void) {
     return PyModule_Create(&work_module);
 }
 #endif
