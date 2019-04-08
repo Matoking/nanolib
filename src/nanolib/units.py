@@ -71,7 +71,7 @@ class NanoDenomination(enum.Enum):
     MICRONANO = "unano"
     """1 unano = :math:`10^{18}` `raw`"""
 
-    MILLINANO = "Mnano"
+    MILLINANO = "millinano"
     """1 mnano = :math:`10^{21}` `raw`"""
 
     NANO = "nano"

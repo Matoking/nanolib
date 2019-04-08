@@ -82,6 +82,26 @@ def test_max_nano_value():
     ) == Decimal("340282366.920938463463374607431768211455")
 
 
+@pytest.mark.parametrize("millinano,meganano", [
+    (10000, Decimal("0.00001")),
+    (123456, Decimal("0.000123456"))
+])
+def test_millinano_meganano_conversions(millinano, meganano):
+    assert convert(
+        millinano,
+        source=NanoDenomination.MILLINANO, target=NanoDenomination.MEGANANO)
+    assert convert(
+        meganano,
+        source=NanoDenomination.MEGANANO, target=NanoDenomination.MILLINANO)
+
+    assert convert(
+        millinano,
+        source="millinano", target="Mnano")
+    assert convert(
+        meganano,
+        source="Mnano", target="millinano")
+
+
 def test_inexact_conversion():
     with pytest.raises(Inexact):
         # The amount to convert is more precise than a single raw.

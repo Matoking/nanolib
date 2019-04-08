@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Add support for Linux (ARM) using the GCC compiler.
  - Add support for the NEON instruction set on ARM for better performance when generating PoW.
 
+### Fixed
+ - Fix conversions between MILLINANO and MEGANANO units when using strings as denomination parameters.
+
 ## [0.2] - 2019-03-07
 ### Added
  - `Block.has_valid_work` and `Block.has_valid_signature` properties are cached to prevent redundant work.
