@@ -1,6 +1,13 @@
 from ed25519_blake2b import BadSignatureError
 
 
+__all__ = (
+    "InvalidBlock", "InvalidWork", "InvalidSignature", "InvalidBlockHash",
+    "InvalidBalance", "InvalidSeed", "InvalidAccount", "InvalidPrivateKey",
+    "InvalidPublicKey"
+)
+
+
 class InvalidBlock(ValueError):
     """The block is invalid."""
 

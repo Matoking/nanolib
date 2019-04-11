@@ -24,6 +24,12 @@ from .exceptions import (
 from .util import is_hex, dec_to_hex
 
 
+__all__ = (
+    "balance_to_hex", "parse_hex_balance", "parse_signature",
+    "validate_balance", "validate_block_hash", "Block"
+)
+
+
 BLOCK_TYPES = ("send", "receive", "open", "change", "state")
 BLOCK_PARAMS = (
     "type", "account", "previous", "destination", "representative",
