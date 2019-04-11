@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Add support for Windows (x86 and x86-64) using the MSVC compiler.
  - Add support for Linux (ARM) using the GCC compiler.
  - Add support for the NEON instruction set on ARM for better performance when generating PoW.
+ - Add `nanolib.accounts.validate_seed` function for validating seeds
 
 ### Fixed
  - Fix conversions between MILLINANO and MEGANANO units when using strings as denomination parameters.

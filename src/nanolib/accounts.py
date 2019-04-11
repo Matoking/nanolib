@@ -107,6 +107,20 @@ def validate_account_id(account_id):
     return account_id
 
 
+def validate_seed(seed):
+    """Validate a NANO seed and raise an exception on failure
+
+    :param str seed: Seed as a 64-character hex string
+    :raises InvalidSeed: If the seed is invalid
+    :return: The seed
+    :rtype: str
+    """
+    if len(seed) != 64 or not is_hex(seed):
+        raise InvalidSeed("Seed must be a 64-character hexadecimal string")
+
+    return seed
+
+
 def get_account_key_pair(private_key):
     """Generate a public key from a private key and return the key pair
 
@@ -134,8 +148,7 @@ def generate_account_private_key(seed, index):
     :return: Account private key as a 64-character hex string
     :rtype: str
     """
-    if len(seed) != 64 or not is_hex(seed):
-        raise InvalidSeed("Seed must be a 64-character hexadecimal string")
+    validate_seed(seed)
 
     if not isinstance(index, int):
         raise ValueError("Index must be an integer")
@@ -337,4 +350,3 @@ def generate_seed():
     """
     gen = random.SystemRandom()
     return "".join([gen.choice("0123456789abcdef") for _ in range(0, 64)])
-
