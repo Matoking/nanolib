@@ -155,6 +155,10 @@ def test_block_signature_with_missing_parameters():
 
     block.verify_signature()
 
+    # Invalid signature won't cause an exception with 'has_valid_signature'
+    block.signature = "1"*128
+    assert not block.has_valid_signature
+
 
 def test_block_sign():
     """
@@ -233,6 +237,61 @@ def test_block_verify_work(block_factory):
         # Missing work
         block.work = None
         block.verify_work()
+
+    # 'has_valid_work' won't cause an exception
+    block.work = "a"*16
+    assert not block.has_valid_work
+
+
+def test_block_verify_work_threshold(block_factory):
+    """
+    Load a block with work, and verify it different work thresholds
+    making it either pass or fail
+    """
+    block = block_factory("send")
+
+    # Passes with normal threshold
+    block.verify_work()
+
+    with pytest.raises(InvalidWork):
+        # Insufficient work for this threshold
+        block.verify_work(threshold=18446744068091581575)
+
+    # Threshold can also be changed using the 'threshold' parameter
+    block.threshold = 18446744068091581575
+
+    with pytest.raises(InvalidWork):
+        block.verify_work()
+
+    block.threshold = 18446744068091581574
+
+
+def test_block_invalid_threshold():
+    """
+    Create a Block with different thresholds to make it either pass or fail
+    """
+    block_data = BLOCKS["send"]["data"].copy()
+
+    with pytest.raises(InvalidWork):
+        Block.from_dict(block_data, threshold=18446744068091581575)
+
+    block = Block.from_dict(block_data, threshold=18446744068091581574)
+
+    # Threshold is required
+    with pytest.raises(ValueError):
+        block.threshold = None
+
+
+def test_block_work_value(block_factory):
+    """
+    Read the work value from the block
+    """
+    block = block_factory("send")
+
+    assert block.work_value == 18446744068091581574
+
+    block.work = None
+    assert not block.work_value
 
 
 def test_block_skip_verify():

@@ -2,9 +2,9 @@ from ed25519_blake2b import BadSignatureError
 
 
 __all__ = (
-    "InvalidBlock", "InvalidWork", "InvalidSignature", "InvalidBlockHash",
-    "InvalidBalance", "InvalidSeed", "InvalidAccount", "InvalidPrivateKey",
-    "InvalidPublicKey"
+    "InvalidBlock", "InvalidWork", "InvalidThreshold", "InvalidSignature",
+    "InvalidBlockHash", "InvalidBalance", "InvalidSeed", "InvalidAccount",
+    "InvalidPrivateKey", "InvalidPublicKey"
 )
 
 
@@ -14,6 +14,10 @@ class InvalidBlock(ValueError):
 
 class InvalidWork(ValueError):
     """The given work is invalid."""
+
+
+class InvalidThreshold(ValueError):
+    """The given work threshold is invalid."""
 
 
 class InvalidSignature(BadSignatureError):

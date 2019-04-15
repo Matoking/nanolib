@@ -16,7 +16,10 @@ from .accounts import (
     is_account_id_valid, validate_account_id, validate_public_key,
     validate_private_key, get_account_public_key, get_account_id
 )
-from .work import parse_work, validate_work, solve_work, WORK_THRESHOLD
+from .work import (
+    parse_work, validate_work, validate_threshold, get_work_value, solve_work,
+    WORK_THRESHOLD
+)
 from .exceptions import (
     InvalidBlock, InvalidSignature, InvalidWork, InvalidBalance,
     InvalidBlockHash
@@ -171,7 +174,6 @@ def validate_balance(balance):
     return balance
 
 
-
 def validate_block_hash(h):
     """Validate the block hash
 
@@ -198,10 +200,11 @@ class Block(object):
     __slots__ = (
         "_block_type", "_account", "_previous", "_destination",
         "_representative", "_balance", "_source", "_link", "_link_as_account",
-        "_signature", "_work", "_has_valid_signature", "_has_valid_work"
+        "_signature", "_work", "_threshold",
+        "_has_valid_signature", "_has_valid_work"
     )
 
-    def __init__(self, block_type, verify=True, **kwargs):
+    def __init__(self, block_type, verify=True, threshold=None, **kwargs):
         """Create a block from given parameters
 
         .. note:: Since `type` is a Python keyword, :ivar:`block_type` is \
@@ -212,12 +215,16 @@ class Block(object):
                                `send`, `receive`, `open`, `change` or `state`
         :param bool verify: If True, signature and/or the proof-of-work will
                             be verified
+        :param int threshold: Work threshold used to check PoW's validity.
+                              Default is NANO main net's default work
+                              threshold.
         :raises InvalidBlock: If the required arguments weren't provided for
                               the block type, or prohibited arguments
                               were provided
         :raises InvalidSignature: If the signature was provided but was
                                   found to be invalid
         :raises InvalidWork: If work was provided but was found to be invalid
+        :raises InvalidThreshold: If invalid work threshold was provided
         :return: The created block
         :rtype: Block
         """
@@ -232,6 +239,10 @@ class Block(object):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+        if not threshold:
+            threshold = WORK_THRESHOLD
+        self.threshold = threshold
+
         self._validate(verify=verify)
 
     def verify_work(self, threshold=None):
@@ -243,24 +254,14 @@ class Block(object):
         :raises InvalidWork: If included work doesn't meet the threshold
         """
         if not threshold:
-            threshold = WORK_THRESHOLD
+            threshold = self.threshold
 
         if not self.work:
             raise ValueError("Work hasn't been added to this block")
 
-        # 'open' blocks use the account ID ('account') itself as part of the
-        # hash
-        # Other blocks use 'previous' to make sure PoW can be completed
-        # in advance (user can immediately send the transaction since PoW is
-        # already ready)
-        prev_block_hash = (
-            get_account_public_key(account_id=self.account)
-            if self.tx_type == "open"
-            else self.previous
-        )
-
         validate_work(
-            block_hash=prev_block_hash, work=self.work, threshold=threshold)
+            block_hash=self.work_block_hash, work=self.work,
+            threshold=threshold)
 
     def verify_signature(self):
         """Verify the signature in the block
@@ -331,7 +332,7 @@ class Block(object):
         :rtype: bool
         """
         if not threshold:
-            threshold = WORK_THRESHOLD
+            threshold = self.threshold
 
         if self.work:
             try:
@@ -340,19 +341,9 @@ class Block(object):
             except InvalidWork:
                 pass
 
-        # 'open' blocks use the account ID ('account') itself as part of the
-        # hash
-        # Other blocks use 'previous' to make sure PoW can be completed
-        # in advance (user can immediately send the transaction since PoW is
-        # already ready)
-        work_block_hash = (
-            get_account_public_key(account_id=self.account)
-            if self.tx_type == "open"
-            else self.previous
-        )
-
         result = solve_work(
-            block_hash=work_block_hash, threshold=threshold, timeout=timeout)
+            block_hash=self.work_block_hash, threshold=threshold,
+            timeout=timeout)
 
         if result:
             self.work = result
@@ -457,26 +448,32 @@ class Block(object):
         return dumps(block_items)
 
     @classmethod
-    def from_json(cls, json, verify=True):
+    def from_json(cls, json, verify=True, threshold=None):
         """Create a :class:`Block` instance from a JSON-formatted string
 
         :param str json: A JSON-formatted block to deserialize
         :param bool verify: If True, signature and/or the proof-of-work will
                             be verified
+        :param int threshold: Work threshold used to check PoW's validity.
+                              Default is NANO main net's default work
+                              threshold.
         :return: Block
         :rtype: Block
         """
         block_items = loads(json)
 
-        return cls.from_dict(block_items, verify=verify)
+        return cls.from_dict(block_items, verify=verify, threshold=threshold)
 
     @classmethod
-    def from_dict(cls, d, verify=True):
+    def from_dict(cls, d, verify=True, threshold=None):
         """Create a :class:`Block` instance from a dictionary
 
         :param dict d: The block fields to deserialize
         :param bool verify: If True, signature and/or the proof-of-work will
                             be verified
+        :param int threshold: Work threshold used to check PoW's validity.
+                              Default is NANO main net's default work
+                              threshold.
         :return: Block
         :rtype: Block
         """
@@ -492,7 +489,7 @@ class Block(object):
             else:
                 d["balance"] = int(d["balance"])
 
-        return cls(**d, verify=verify)
+        return cls(**d, verify=verify, threshold=threshold)
 
     @property
     def tx_type(self):
@@ -602,6 +599,21 @@ class Block(object):
             if self.tx_type == "open"
             else self.previous
         )
+
+    @property
+    def work_value(self):
+        """The work value attached to this block. The value must be equal to
+        or higher than :attr:`nanolib.blocks.Block.threshold`
+        in order to be valid.
+
+        :return: 64-bit integer or None if this block doesn't include work
+        :rtype: int or None
+        """
+        if self.work:
+            return get_work_value(
+                block_hash=self.work_block_hash, work=self.work)
+        else:
+            return None
 
     @property
     def block_hash(self):
@@ -768,6 +780,13 @@ class Block(object):
         else:
             self._work = None
 
+    @invalidate_work
+    def set_threshold(self, threshold):
+        if threshold is None:
+            raise ValueError("'threshold' property is required")
+
+        self._threshold = validate_threshold(threshold)
+
     block_type = property(lambda x: x._block_type, set_block_type)
     account = property(lambda x: x._account, set_account)
     source = property(lambda x: x._source, set_source)
@@ -780,3 +799,4 @@ class Block(object):
         lambda x: x._link_as_account, set_link_as_account)
     signature = property(lambda x: x._signature, set_signature)
     work = property(lambda x: x._work, set_work)
+    threshold = property(lambda x: x._threshold, set_threshold)

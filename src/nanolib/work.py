@@ -9,7 +9,7 @@ from hashlib import blake2b
 
 from bitarray import bitarray
 
-from .exceptions import InvalidWork
+from .exceptions import InvalidWork, InvalidThreshold
 from .util import is_hex
 
 # Select the PoW C extension depending on highest supported instruction set
@@ -44,7 +44,8 @@ WORK_THRESHOLD = int("ffffffc000000000", 16)
 
 
 __all__ = (
-    "WORK_THRESHOLD", "parse_work", "validate_work", "solve_work"
+    "WORK_THRESHOLD", "parse_work", "validate_work", "validate_threshold",
+    "get_work_value", "solve_work"
 )
 
 
@@ -70,6 +71,27 @@ def parse_work(work):
     return work.lower()
 
 
+def get_work_value(block_hash, work):
+    """
+    Get the proof-of-work value. The work value must be equal or higher than
+    the work threshold to be considered valid.
+
+    :param str block_hash: Block hash as a 64-character hex string
+    :param str work: Work as a 16-character hex string
+    :return: The work value as a 64-bit integer
+    :rtype: int
+    """
+    reversed_work = bytearray(unhexlify(work))
+    reversed_work.reverse()
+    work_hash = bytearray(blake2b(
+        b"".join([reversed_work, unhexlify(block_hash)]),
+        digest_size=8).digest())
+    work_hash.reverse()
+    work_value = int(hexlify(work_hash), 16)
+
+    return work_value
+
+
 def validate_work(block_hash, work, threshold=WORK_THRESHOLD):
     """Validate the proof-of-work.
 
@@ -81,18 +103,31 @@ def validate_work(block_hash, work, threshold=WORK_THRESHOLD):
     :return: The work as a 16-character hex string
     :rtype: str
     """
-    reversed_work = bytearray(unhexlify(work))
-    reversed_work.reverse()
-    work_hash = bytearray(blake2b(
-        b"".join([reversed_work, unhexlify(block_hash)]),
-        digest_size=8).digest())
-    work_hash.reverse()
-    work_value = int(hexlify(work_hash), 16)
+    work_value = get_work_value(block_hash=block_hash, work=work)
 
     if work_value < threshold:
         raise InvalidWork("Work doesn't meet the required threshold")
     else:
         return work.lower()
+
+
+def validate_threshold(threshold):
+    """Validate the work threshold.
+
+    :param int threshold: Work threshold as an integer
+    :raises InvalidThreshold: If the threshold isn't an integer
+                              in the range :math:`1` to :math:`2^{64}-1`
+    :return: The work threshold
+    :rtype: int
+    """
+    if not isinstance(threshold, int):
+        raise InvalidThreshold("Threshold has to be an integer")
+
+    if threshold < 1 or threshold > (2**64) - 1:
+        raise InvalidThreshold(
+            "Threshold has to be in the range 1 - (2**64)-1")
+
+    return threshold
 
 
 def solve_work(block_hash, threshold=WORK_THRESHOLD, timeout=None):

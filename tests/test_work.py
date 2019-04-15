@@ -5,9 +5,9 @@ import pytest
 import time
 
 from nanolib.work import (
-    parse_work, validate_work, solve_work
+    parse_work, validate_work, validate_threshold, solve_work
 )
-from nanolib.exceptions import InvalidWork
+from nanolib.exceptions import InvalidWork, InvalidThreshold
 
 
 VALID_BLOCK_HASH = \
@@ -46,6 +46,22 @@ def test_validate_work():
         validate_work(block_hash=VALID_BLOCK_HASH, work="e"*16)
 
     assert validate_work(block_hash=VALID_BLOCK_HASH, work=VALID_WORK)
+
+
+def test_validate_threshold():
+    assert validate_threshold(100) == 100
+
+    with pytest.raises(InvalidThreshold):
+        # Not integer
+        validate_threshold(10.5)
+
+    with pytest.raises(InvalidThreshold):
+        # Below 1
+        validate_threshold(0)
+
+    with pytest.raises(InvalidThreshold):
+        # Above (2**64)-1
+        validate_threshold(2**64)
 
 
 def test_solve_work():
