@@ -109,6 +109,20 @@
                 "work": "754e1736104dfb14",
                 "signature": "E628007B907D44D635A7321D684DE3C552EEC02320F47D64FD6219685E5B0735E06DB15C1753CC1CC1B17D96ADC1FA4F037A0B8F6AD157A840F7EB14B6C96B0E"
             }
+        },
+        "state_epoch": {
+            "hash": "D9917582FB96AF84C02250F62A5340DD1318C76B33EC3C421D15F6EFED1DFD55",
+            "data": {
+                "account": "xrb_1w77aapnijnm5mo16r3xtpqu7n459r61fqpcdt3kxfmz8gtqgzbozswxmduy",
+                "balance": "1000000000000000000000000000000",
+                "link": "65706F636820763120626C6F636B000000000000000000000000000000000000",
+                "link_as_account": "xrb_1sdifxjpia5p86i86u5hefoi1111111111111111111111111111g7jhnpfy",
+                "previous": "A972FF5D6C00BFD18EDD70C74469204E640C81F0D30B62E0069A24209F1D82F9",
+                "representative": "xrb_1anrzcuwe64rwxzcco8dkhpyxpi8kd7zsjc1oeimpc3ppca4mrjtwnqposrs",
+                "signature": "4C5D3D70621148324494E6BED751F168441919DBF722617EE913CB1418486E51052D711DCD9129C4D84144120F5903A3A840C61C4C5A4E31B57DFD5489E57E07",
+                "type": "state",
+                "work": "0dad271fd745907c"
+            }
         }
     }
 }

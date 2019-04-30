@@ -64,6 +64,17 @@ ZERO_ACCOUNT_ID = \
 STATE_BLOCK_HEADER_BYTES = unhexlify(
     "0000000000000000000000000000000000000000000000000000000000000006")
 
+# Constants used for epoch blocks. For details, see:
+# https://github.com/nanocurrency/nano-node/pull/955
+#
+# 'link' value used to denote an account upgrade from V0 to V1
+# The resulting bytearray starts with the string 'epoch v1 block'
+EPOCH_LINK_V1 = \
+    "65706F636820763120626C6F636B000000000000000000000000000000000000"
+EPOCH_SIGN_PUBLIC_KEY = \
+    "e89208dd038fbb269987689621d52292ae9c35941a7484756ecced92a65093ba"
+
+
 MAX_BALANCE = 2**128 - 1
 
 
@@ -284,8 +295,13 @@ class Block(object):
         if not self.signature:
             raise ValueError("Signature hasn't been added to this block")
 
-        public_key = get_account_public_key(account_id=self.account)
-        validate_public_key(public_key)
+        if self.tx_type == "epoch":
+            # Epoch blocks are signed by the genesis account regardless
+            # of the actual account
+            public_key = EPOCH_SIGN_PUBLIC_KEY
+        else:
+            public_key = get_account_public_key(account_id=self.account)
+            validate_public_key(public_key)
 
         vk = VerifyingKey(unhexlify(public_key))
 
@@ -503,12 +519,14 @@ class Block(object):
         :return: For legacy blocks, the transaction type can be \
                  `open`, `change`, `receive` or `send`. \
                  For state blocks, the transaction type can be \
-                 `change`, `open` or `send/receive`
+                 `change`, `open`, `send/receive` or `epoch`
         """
         if self.block_type != "state":
             return self.block_type
         elif self.link == ZERO_BLOCK_HASH:
             return "change"
+        elif self.link == EPOCH_LINK_V1:
+            return "epoch"
         elif self.previous == ZERO_BLOCK_HASH:
             return "open"
         else:

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
  - Fix conversions between MILLINANO and MEGANANO units when using strings as denomination parameters.
+ - Verify epoch V1 state blocks correctly. See [nanocurrency/nano-node#955](https://github.com/nanocurrency/nano-node/pull/955) for details.
 
 ## [0.2] - 2019-03-07
 ### Added

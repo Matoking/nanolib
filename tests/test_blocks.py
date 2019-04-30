@@ -80,6 +80,7 @@ BLOCKS_AND_TYPES = (
     (BLOCKS["state_sendreceive"], "send/receive"),
     (BLOCKS["state_sendreceive2"], "send/receive"),
     (BLOCKS["state_change"], "change"),
+    (BLOCKS["state_epoch"], "epoch"),
 )
 
 
