@@ -333,6 +333,8 @@ class Block(object):
         """
         if not threshold:
             threshold = self.threshold
+        else:
+            self.threshold = validate_threshold(threshold)
 
         if self.work:
             try:
