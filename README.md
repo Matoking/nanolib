@@ -21,6 +21,21 @@ Features
 * Compatible with Python 3.6 and up
 * Licensed under the very permissive *Creative Commons Zero* license
 
+Installation
+============
+
+You can install the library using pip:
+
+```
+pip install nanolib
+```
+
+nanolib requires a working build environment for the C extensions. For example, on Debian-based distros you can install the required Python header files and a C compiler using the following command:
+
+```
+apt install build-essential python3-dev
+```
+
 Documentation
 =============
 
