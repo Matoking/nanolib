@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Add support for Windows (x86 and x86-64) using the MSVC compiler.
  - Add support for Linux (ARM) using the GCC compiler.
  - Add support for the NEON instruction set on ARM for better performance when generating PoW.
- - Add `nanolib.accounts.validate_seed` function for validating seeds
- - Add `nanolib.work.validate_threshold` and `nanolib.work.get_work_value` functions
- - Add `Block.threshold` property to adjust the required work threshold on a per-block basis
- - Add `Block.work_value` property to get the value of the included work
+ - Add `nanolib.accounts.validate_seed` function for validating seeds.
+ - Add `nanolib.work.validate_threshold` and `nanolib.work.get_work_value` functions.
+ - Add `Block.threshold` property to adjust the required work threshold on a per-block basis.
+ - Add `Block.work_value` property to get the value of the included work.
+
+### Changed
+ - Enable multithreading when generating PoW by releasing GIL.
 
 ### Fixed
  - Fix conversions between MILLINANO and MEGANANO units when using strings as denomination parameters.

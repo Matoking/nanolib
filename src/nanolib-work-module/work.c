@@ -58,7 +58,10 @@ work_do_work(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    uint64_t result = do_work(block_hash, nonce, threshold);
+    uint64_t result = 0;
+    Py_BEGIN_ALLOW_THREADS
+    result = do_work(block_hash, nonce, threshold);
+    Py_END_ALLOW_THREADS
 
     PyObject *ret = Py_BuildValue("K", result);
     return ret;
