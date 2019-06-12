@@ -9,8 +9,8 @@ from hashlib import blake2b
 
 from bitarray import bitarray
 
-from .exceptions import InvalidWork, InvalidThreshold
-from .util import is_hex
+from .exceptions import InvalidWork, InvalidDifficulty, InvalidMultiplier
+from .util import is_hex, dec_to_hex
 
 # Select the PoW C extension depending on highest supported instruction set
 # based on the following priorities:
@@ -40,11 +40,13 @@ elif "neon" in _cpu_flags:
 else:
     from . import _work_ref as _work
 
-WORK_THRESHOLD = int("ffffffc000000000", 16)
+WORK_DIFFICULTY = "ffffffc000000000"
+WORK_DIFFICULTY_INT = int(WORK_DIFFICULTY, 16)
 
 
 __all__ = (
-    "WORK_THRESHOLD", "parse_work", "validate_work", "validate_threshold",
+    "WORK_DIFFICULTY", "parse_work", "validate_work", "validate_difficulty",
+    "derive_work_difficulty", "derive_work_multiplier",
     "get_work_value", "solve_work"
 )
 
@@ -74,7 +76,7 @@ def parse_work(work):
 def get_work_value(block_hash, work):
     """
     Get the proof-of-work value. The work value must be equal or higher than
-    the work threshold to be considered valid.
+    the work difficulty to be considered valid.
 
     :param str block_hash: Block hash as a 64-character hex string
     :param str work: Work as a 16-character hex string
@@ -92,50 +94,117 @@ def get_work_value(block_hash, work):
     return work_value
 
 
-def validate_work(block_hash, work, threshold=WORK_THRESHOLD):
+def validate_work(block_hash, work, difficulty=WORK_DIFFICULTY):
     """Validate the proof-of-work.
 
     :param str block_hash: Block hash as a 64-character hex string
     :param str work: Work as a 16-character hex string
-    :param int threshold: The threshold/difficulty for the proof-of-work.
-                          NANO network's threshold is used by default.
-    :raises InvalidWork: If the work doesn't meet the threshold
+    :param int difficulty: The difficulty/difficulty for the proof-of-work.
+                          NANO network's difficulty is used by default.
+    :raises InvalidWork: If the work doesn't meet the difficulty
     :return: The work as a 16-character hex string
     :rtype: str
     """
+    difficulty = parse_difficulty(difficulty)
+
     work_value = get_work_value(block_hash=block_hash, work=work)
 
-    if work_value < threshold:
-        raise InvalidWork("Work doesn't meet the required threshold")
+    if work_value < difficulty:
+        raise InvalidWork("Work doesn't meet the required difficulty")
     else:
         return work.lower()
 
 
-def validate_threshold(threshold):
-    """Validate the work threshold.
+def validate_difficulty(difficulty):
+    """Validate the work difficulty.
 
-    :param int threshold: Work threshold as an integer
-    :raises InvalidThreshold: If the threshold isn't an integer
-                              in the range :math:`1` to :math:`2^{64}-1`
-    :return: The work threshold
+    :param str difficulty: Work difficulty as a 16-character hex string
+    :raises InvalidDifficulty: If the difficulty isn't a 16-character hex value
+    :return: The work difficulty
+    :rtype: str
+    """
+    if not len(difficulty) == 16 or not is_hex(difficulty):
+        raise InvalidDifficulty(
+            "Threshold has to be a 16-character hex string"
+        )
+
+    return difficulty.lower()
+
+
+def parse_difficulty(difficulty):
+    """Parse and return given hex-formatted difficulty as an integer.
+
+    :param str difficulty: Work difficulty as a 16-character hex string
+    :raises InvalidDifficulty: If the difficulty isn't a 16-character hex value
+    :return: The work difficulty as an integer
     :rtype: int
     """
-    if not isinstance(threshold, int):
-        raise InvalidThreshold("Threshold has to be an integer")
+    if is_hex(difficulty) and len(difficulty) == 16:
+        return int(difficulty, 16)
 
-    if threshold < 1 or threshold > (2**64) - 1:
-        raise InvalidThreshold(
-            "Threshold has to be in the range 1 - (2**64)-1")
-
-    return threshold
+    raise InvalidDifficulty("Difficulty has to be a 16-character hex string")
 
 
-def solve_work(block_hash, threshold=WORK_THRESHOLD, timeout=None):
+def derive_work_difficulty(multiplier, base_difficulty=None):
+    """Derive a work difficulty from a provided multiplier
+    and a base difficulty
+
+    :param float multiplier: Work multiplier as a float. Work difficulty with
+                             a multiplier of 2 requires on average twice as
+                             much work compared to the base difficulty.
+    :param str base_difficulty: Base difficulty as a 16-character hex string.
+                                NANO network's difficulty is used by default.
+    :return: The adjusted work difficulty as a 16-character hex string
+    :rtype: str
+    """
+    if base_difficulty is None:
+        base_difficulty = WORK_DIFFICULTY_INT
+    else:
+        base_difficulty = parse_difficulty(base_difficulty)
+
+    try:
+        multiplier = float(multiplier)
+    except ValueError:
+        raise InvalidMultiplier("Multiplier is not a float")
+
+    if multiplier <= 0:
+        raise InvalidMultiplier(
+            "Multiplier has to be a positive non-zero float")
+
+    difficulty = int((base_difficulty - (1 << 64)) / multiplier + (1 << 64))
+    return dec_to_hex(difficulty, 8).lower()
+
+
+def derive_work_multiplier(difficulty, base_difficulty=None):
+    """Derive a work multiplier from a difficulty and a base difficulty.
+
+    :param str difficulty: Work difficulty as a 16-character hex string
+    :param str base_difficulty: Base work difficulty as a 16-character hex
+                                string.
+                                NANO network's difficulty is used by default.
+    :return: The work multiplier as a float. Work difficulty with a multiplier
+             of 2 requires on average twice as much work compared to the base
+             difficulty.
+    :rtype: float
+    """
+    if base_difficulty is None:
+        base_difficulty = WORK_DIFFICULTY_INT
+    else:
+        base_difficulty = parse_difficulty(base_difficulty)
+
+    difficulty = parse_difficulty(difficulty)
+
+    multiplier = \
+        float((1 << 64) - base_difficulty) / float((1 << 64) - difficulty)
+    return multiplier
+
+
+def solve_work(block_hash, difficulty=WORK_DIFFICULTY, timeout=None):
     """Solve the work for the corresponding block hash.
 
     :param str block_hash: Block hash as a 64-character hex string
-    :param int threshold: The threshold/difficulty for the proof-of-work.
-                          NANO network's threshold is used by default.
+    :param int difficulty: The difficulty/difficulty for the proof-of-work.
+                          NANO network's difficulty is used by default.
     :param timeout: Timeout in seconds. If provided, None will be returned
                     if the work can't be solved in the given time.
                     If None, the function will block until the work is solved.
@@ -144,6 +213,8 @@ def solve_work(block_hash, threshold=WORK_THRESHOLD, timeout=None):
              couldn't be solved in time
     :rtype: str or None
     """
+    validate_difficulty(difficulty)
+
     # Reinitialize the random number generator in case this method is being
     # run in a multiprocessing environment; otherwise every process will
     # inherit the same RNG state
@@ -155,10 +226,11 @@ def solve_work(block_hash, threshold=WORK_THRESHOLD, timeout=None):
     start = time.time()
 
     while True:
-        nonce = _work.do_work(block_hash_b, nonce, threshold)
+        nonce = _work.do_work(
+            block_hash_b, nonce, parse_difficulty(difficulty))
         work = hexlify(int(nonce).to_bytes(8, byteorder="big"))
         try:
-            validate_work(block_hash, work, threshold)
+            validate_work(block_hash, work, difficulty)
             return str(work, "utf-8")
         except InvalidWork:
             pass

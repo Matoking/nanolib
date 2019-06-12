@@ -1,27 +1,26 @@
+import time
 from hashlib import blake2b
 
 import pytest
-
-import time
-
-from nanolib.work import (
-    parse_work, validate_work, validate_threshold, solve_work
-)
-from nanolib.exceptions import InvalidWork, InvalidThreshold
-
+from nanolib.exceptions import (InvalidDifficulty, InvalidMultiplier,
+                                InvalidWork)
+from nanolib.util import dec_to_hex
+from nanolib.work import (derive_work_difficulty, derive_work_multiplier,
+                          parse_difficulty, parse_work, solve_work,
+                          validate_difficulty, validate_work)
 
 VALID_BLOCK_HASH = \
     "B585D9363B8265CFD5993F30A3D6DE6B5CA5CC7879E0AFA94D13F08B713B9FFD"
 VALID_WORK = "5b064dcc70b9db0a"
 
 
-def test_low_threshold_used_for_tests():
+def test_low_difficulty_used_for_tests():
     """
-    Check that a lower work threshold is used for tests
+    Check that a lower work difficulty is used for tests
     """
-    from nanolib.work import WORK_THRESHOLD
+    from nanolib.work import WORK_DIFFICULTY
 
-    assert WORK_THRESHOLD < int("ffffffc000000000", 16)
+    assert int(WORK_DIFFICULTY, 16) < int("ffffffc000000000", 16)
 
 
 def test_parse_work():
@@ -48,31 +47,83 @@ def test_validate_work():
     assert validate_work(block_hash=VALID_BLOCK_HASH, work=VALID_WORK)
 
 
-def test_validate_threshold():
-    assert validate_threshold(100) == 100
+def test_validate_difficulty():
+    assert validate_difficulty("FFFFFFC000000000") == "ffffffc000000000"
 
-    with pytest.raises(InvalidThreshold):
-        # Not integer
-        validate_threshold(10.5)
+    with pytest.raises(InvalidDifficulty):
+        # Not a hex string
+        validate_difficulty("GGFFFFFFFFFFFFFF")
 
-    with pytest.raises(InvalidThreshold):
-        # Below 1
-        validate_threshold(0)
+    with pytest.raises(InvalidDifficulty):
+        # Not a 16-character hex string
+        validate_difficulty("A"*17)
 
-    with pytest.raises(InvalidThreshold):
-        # Above (2**64)-1
-        validate_threshold(2**64)
+
+def test_parse_difficulty():
+    assert parse_difficulty("FFFFFFC000000000") == 18446743798831644672
+
+    with pytest.raises(InvalidDifficulty):
+        # Not a hex string
+        parse_difficulty("GGFFFFFFFFFFFFFF")
+
+    with pytest.raises(InvalidDifficulty):
+        # Not a 16-character hex string
+        parse_difficulty("A"*17)
+
+
+def test_derive_work_difficulty():
+    assert derive_work_difficulty(
+        multiplier=0.125, base_difficulty="ffffffc000000000"
+    ) == "fffffe0000000000"
+
+    assert derive_work_difficulty(
+        multiplier=2, base_difficulty="ffffffc000000000"
+    ) == "ffffffe000000000"
+
+    with pytest.raises(InvalidMultiplier):
+        # Not a float
+        assert derive_work_difficulty(multiplier="invalid")
+
+    with pytest.raises(InvalidMultiplier):
+        # Zero or lower
+        assert derive_work_difficulty(multiplier=0)
+
+    with pytest.raises(InvalidDifficulty):
+        # Invalid difficulty
+        assert derive_work_difficulty(
+            multiplier=1, base_difficulty=hex(2**64)[2:]
+        )
+
+
+def test_derive_work_multiplier():
+    assert derive_work_multiplier(
+        difficulty="fffffe0000000000", base_difficulty="ffffffc000000000"
+    ) == pytest.approx(0.125)
+    assert derive_work_multiplier(
+        difficulty="ffffffe000000000", base_difficulty="ffffffc000000000"
+    ) == pytest.approx(2)
+
+    # 'base_difficulty' defaults to 'ffffffc000000000'
+    assert derive_work_multiplier(difficulty="ffffffc000000000") == 1
+
+    with pytest.raises(InvalidDifficulty):
+        assert derive_work_multiplier(
+            difficulty="invalid", base_difficulty="ffffffc000000000")
+
+    with pytest.raises(InvalidDifficulty):
+        assert derive_work_multiplier(
+            difficulty="ffffffc000000000", base_difficulty="invalid")
 
 
 def test_solve_work():
     fake_hash = blake2b(b"fakeBlock", digest_size=32).hexdigest()
 
-    # Use a very low threshold
-    test_threshold = 1028
+    # Use a very low difficulty
+    test_difficulty = dec_to_hex(1028, 8)
 
-    result = solve_work(fake_hash, threshold=test_threshold)
+    result = solve_work(fake_hash, difficulty=test_difficulty)
 
-    assert validate_work(fake_hash, work=result, threshold=test_threshold)
+    assert validate_work(fake_hash, work=result, difficulty=test_difficulty)
 
 
 def test_work_timeout():
@@ -84,9 +135,9 @@ def test_work_timeout():
 
     start = time.time()
 
-    # Use the maximum possible threshold to make the PoW essentially
+    # Use the maximum possible difficulty to make the PoW essentially
     # impossible to solve
-    result = solve_work(fake_hash, threshold=(2**64)-1, timeout=0.5)
+    result = solve_work(fake_hash, difficulty="f"*16, timeout=0.5)
     end = time.time()
 
     assert result is None

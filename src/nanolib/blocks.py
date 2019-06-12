@@ -17,8 +17,8 @@ from .accounts import (
     validate_private_key, get_account_public_key, get_account_id
 )
 from .work import (
-    parse_work, validate_work, validate_threshold, get_work_value, solve_work,
-    WORK_THRESHOLD
+    parse_work, validate_work, validate_difficulty, parse_difficulty,
+    get_work_value, solve_work, WORK_DIFFICULTY
 )
 from .exceptions import (
     InvalidBlock, InvalidSignature, InvalidWork, InvalidBalance,
@@ -211,11 +211,11 @@ class Block(object):
     __slots__ = (
         "_block_type", "_account", "_previous", "_destination",
         "_representative", "_balance", "_source", "_link", "_link_as_account",
-        "_signature", "_work", "_threshold",
+        "_signature", "_work", "_difficulty",
         "_has_valid_signature", "_has_valid_work"
     )
 
-    def __init__(self, block_type, verify=True, threshold=None, **kwargs):
+    def __init__(self, block_type, verify=True, difficulty=None, **kwargs):
         """Create a block from given parameters
 
         .. note:: Since `type` is a Python keyword, :ivar:`block_type` is \
@@ -226,16 +226,16 @@ class Block(object):
                                `send`, `receive`, `open`, `change` or `state`
         :param bool verify: If True, signature and/or the proof-of-work will
                             be verified
-        :param int threshold: Work threshold used to check PoW's validity.
-                              Default is NANO main net's default work
-                              threshold.
+        :param str difficulty: Work difficulty used to check PoW's validity.
+                               Default is NANO main net's default work
+                               difficulty.
         :raises InvalidBlock: If the required arguments weren't provided for
                               the block type, or prohibited arguments
                               were provided
         :raises InvalidSignature: If the signature was provided but was
                                   found to be invalid
         :raises InvalidWork: If work was provided but was found to be invalid
-        :raises InvalidThreshold: If invalid work threshold was provided
+        :raises InvalidDifficulty: If invalid work difficulty was provided
         :return: The created block
         :rtype: Block
         """
@@ -250,29 +250,29 @@ class Block(object):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-        if not threshold:
-            threshold = WORK_THRESHOLD
-        self.threshold = threshold
+        if not difficulty:
+            difficulty = WORK_DIFFICULTY
+        self.difficulty = difficulty
 
         self._validate(verify=verify)
 
-    def verify_work(self, threshold=None):
+    def verify_work(self, difficulty=None):
         """Verify the work in the block
 
-        :param int threshold: The threshold/difficulty for the proof-of-work.
-                              NANO mainnet threshold is used by default.
+        :param str difficulty: The difficulty/difficulty for the proof-of-work.
+                              NANO mainnet difficulty is used by default.
         :raises ValueError: If work isn't included in the block
-        :raises InvalidWork: If included work doesn't meet the threshold
+        :raises InvalidWork: If included work doesn't meet the difficulty
         """
-        if not threshold:
-            threshold = self.threshold
+        if not difficulty:
+            difficulty = self.difficulty
 
         if not self.work:
             raise ValueError("Work hasn't been added to this block")
 
         validate_work(
             block_hash=self.work_block_hash, work=self.work,
-            threshold=threshold)
+            difficulty=difficulty)
 
     def verify_signature(self):
         """Verify the signature in the block
@@ -332,14 +332,14 @@ class Block(object):
 
         return True
 
-    def solve_work(self, threshold=None, timeout=None):
+    def solve_work(self, difficulty=None, timeout=None):
         """Solve the work contained in this block and update the Block
         instance to include the work
 
         :raises ValueError: If the block already has valid proof-of-work
-                            meeting the threshold
-        :param int threshold: The threshold/difficulty for the proof-of-work.
-                              NANO mainnet threshold is used by default.
+                            meeting the difficulty
+        :param str difficulty: The difficulty/difficulty for the proof-of-work.
+                              NANO mainnet difficulty is used by default.
         :param timeout: Timeout in seconds. If provided, None will be returned
                         if the work can't be solved in the given time.
                         If None, the function will block until the work is solved.
@@ -347,20 +347,20 @@ class Block(object):
         :return: True if the work was solved in the given time, False otherwise
         :rtype: bool
         """
-        if not threshold:
-            threshold = self.threshold
+        if not difficulty:
+            difficulty = self.difficulty
         else:
-            self.threshold = validate_threshold(threshold)
+            self.difficulty = validate_difficulty(difficulty)
 
         if self.work:
             try:
-                self.verify_work(threshold=threshold)
+                self.verify_work(difficulty=difficulty)
                 raise ValueError("Block already has a valid proof-of-work")
             except InvalidWork:
                 pass
 
         result = solve_work(
-            block_hash=self.work_block_hash, threshold=threshold,
+            block_hash=self.work_block_hash, difficulty=difficulty,
             timeout=timeout)
 
         if result:
@@ -382,7 +382,7 @@ class Block(object):
         :raises InvalidSignature: If the signature was provided and was found
                                   to be invalid
         :raises InvalidWork: If work was provided and was found to be below
-                             the required threshold
+                             the required difficulty
         """
         block_params = set(vars(self).keys())
         required_params = set(BLOCK_REQUIRED_PARAMS[self.block_type])
@@ -466,32 +466,32 @@ class Block(object):
         return dumps(block_items)
 
     @classmethod
-    def from_json(cls, json, verify=True, threshold=None):
+    def from_json(cls, json, verify=True, difficulty=None):
         """Create a :class:`Block` instance from a JSON-formatted string
 
         :param str json: A JSON-formatted block to deserialize
         :param bool verify: If True, signature and/or the proof-of-work will
                             be verified
-        :param int threshold: Work threshold used to check PoW's validity.
+        :param str difficulty: Work difficulty used to check PoW's validity.
                               Default is NANO main net's default work
-                              threshold.
+                              difficulty.
         :return: Block
         :rtype: Block
         """
         block_items = loads(json)
 
-        return cls.from_dict(block_items, verify=verify, threshold=threshold)
+        return cls.from_dict(block_items, verify=verify, difficulty=difficulty)
 
     @classmethod
-    def from_dict(cls, d, verify=True, threshold=None):
+    def from_dict(cls, d, verify=True, difficulty=None):
         """Create a :class:`Block` instance from a dictionary
 
         :param dict d: The block fields to deserialize
         :param bool verify: If True, signature and/or the proof-of-work will
                             be verified
-        :param int threshold: Work threshold used to check PoW's validity.
+        :param str difficulty: Work difficulty used to check PoW's validity.
                               Default is NANO main net's default work
-                              threshold.
+                              difficulty.
         :return: Block
         :rtype: Block
         """
@@ -507,7 +507,7 @@ class Block(object):
             else:
                 d["balance"] = int(d["balance"])
 
-        return cls(**d, verify=verify, threshold=threshold)
+        return cls(**d, verify=verify, difficulty=difficulty)
 
     @property
     def tx_type(self):
@@ -563,13 +563,13 @@ class Block(object):
 
         .. note::
 
-           This method assumes that NANO mainnet threshold is used. In any
+           This method assumes that NANO mainnet difficulty is used. In any
            other case use :meth:`nanolib.blocks.Block.verify_work`
            instead.
 
-        :return: True if the block has valid work that meets the threshold, \
+        :return: True if the block has valid work that meets the difficulty, \
                  False if :attr:`Block.work` is missing or the work
-                 was found to be below the required threshold
+                 was found to be below the required difficulty
         :rtype: bool
         """
         if self._has_valid_work is not None:
@@ -623,7 +623,7 @@ class Block(object):
     @property
     def work_value(self):
         """The work value attached to this block. The value must be equal to
-        or higher than :attr:`nanolib.blocks.Block.threshold`
+        or higher than :attr:`nanolib.blocks.Block.difficulty`
         in order to be valid.
 
         :return: 64-bit integer or None if this block doesn't include work
@@ -801,11 +801,11 @@ class Block(object):
             self._work = None
 
     @invalidate_work
-    def set_threshold(self, threshold):
-        if threshold is None:
-            raise ValueError("'threshold' property is required")
+    def set_difficulty(self, difficulty):
+        if difficulty is None:
+            raise ValueError("'difficulty' property is required")
 
-        self._threshold = validate_threshold(threshold)
+        self._difficulty = parse_difficulty(difficulty)
 
     block_type = property(lambda x: x._block_type, set_block_type)
     account = property(lambda x: x._account, set_account)
@@ -819,4 +819,6 @@ class Block(object):
         lambda x: x._link_as_account, set_link_as_account)
     signature = property(lambda x: x._signature, set_signature)
     work = property(lambda x: x._work, set_work)
-    threshold = property(lambda x: x._threshold, set_threshold)
+    difficulty = property(
+        lambda x: dec_to_hex(x._difficulty, 8), set_difficulty
+    )

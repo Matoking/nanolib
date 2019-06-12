@@ -89,17 +89,21 @@ def test_max_nano_value():
 def test_millinano_meganano_conversions(millinano, meganano):
     assert convert(
         millinano,
-        source=NanoDenomination.MILLINANO, target=NanoDenomination.MEGANANO)
+        source=NanoDenomination.MILLINANO, target=NanoDenomination.MEGANANO
+    ) == meganano
     assert convert(
         meganano,
-        source=NanoDenomination.MEGANANO, target=NanoDenomination.MILLINANO)
+        source=NanoDenomination.MEGANANO, target=NanoDenomination.MILLINANO
+    ) == millinano
 
     assert convert(
         millinano,
-        source="millinano", target="Mnano")
+        source="millinano", target="Mnano"
+    ) == meganano
     assert convert(
         meganano,
-        source="Mnano", target="millinano")
+        source="Mnano", target="millinano"
+    ) == millinano
 
 
 def test_inexact_conversion():

@@ -6,12 +6,12 @@ from tests.data import BLOCKS
 
 
 @pytest.fixture(autouse=True)
-def low_pow_threshold(monkeypatch):
-    # Use a far lower default threshold for unit tests
-    TEST_THRESHOLD = 9459044173002835106
-    monkeypatch.setattr("nanolib.blocks.WORK_THRESHOLD", TEST_THRESHOLD)
-    monkeypatch.setattr("nanolib.work.WORK_THRESHOLD", TEST_THRESHOLD)
-    monkeypatch.setattr("nanolib.WORK_THRESHOLD", TEST_THRESHOLD)
+def low_pow_difficulty(monkeypatch):
+    # Use a far lower default difficulty for unit tests
+    TEST_DIFFICULTY = "8345468f269004a2"
+    monkeypatch.setattr("nanolib.blocks.WORK_DIFFICULTY", TEST_DIFFICULTY)
+    monkeypatch.setattr("nanolib.work.WORK_DIFFICULTY", TEST_DIFFICULTY)
+    monkeypatch.setattr("nanolib.WORK_DIFFICULTY", TEST_DIFFICULTY)
 
 
 @pytest.fixture(scope="function")

@@ -217,8 +217,8 @@ def test_block_solve_work(block_factory):
 
     block.work = None
 
-    # Try solving PoW with essentially impossible threshold
-    assert not block.solve_work(threshold=(2**64)-1, timeout=0.1)
+    # Try solving PoW with essentially impossible difficulty
+    assert not block.solve_work("f"*16, timeout=0.1)
 
 
 def test_block_verify_work(block_factory):
@@ -230,7 +230,7 @@ def test_block_verify_work(block_factory):
     block.verify_work()
 
     with pytest.raises(InvalidWork):
-        # Work doesn't meet the threshold
+        # Work doesn't meet the difficulty
         block.work = "a"*16
         block.verify_work()
 
@@ -244,43 +244,43 @@ def test_block_verify_work(block_factory):
     assert not block.has_valid_work
 
 
-def test_block_verify_work_threshold(block_factory):
+def test_block_verify_work_difficulty(block_factory):
     """
-    Load a block with work, and verify it different work thresholds
+    Load a block with work, and verify it different work difficultys
     making it either pass or fail
     """
     block = block_factory("send")
 
-    # Passes with normal threshold
+    # Passes with normal difficulty
     block.verify_work()
 
     with pytest.raises(InvalidWork):
-        # Insufficient work for this threshold
-        block.verify_work(threshold=18446744068091581575)
+        # Insufficient work for this difficulty
+        block.verify_work(difficulty="fffffffeb1249487")
 
-    # Threshold can also be changed using the 'threshold' parameter
-    block.threshold = 18446744068091581575
+    # Threshold can also be changed using the 'difficulty' parameter
+    block.difficulty = "fffffffeb1249487"
 
     with pytest.raises(InvalidWork):
         block.verify_work()
 
-    block.threshold = 18446744068091581574
+    block.difficulty = "fffffffeb1249486"
 
 
-def test_block_invalid_threshold():
+def test_block_invalid_difficulty():
     """
-    Create a Block with different thresholds to make it either pass or fail
+    Create a Block with different difficultys to make it either pass or fail
     """
     block_data = BLOCKS["send"]["data"].copy()
 
     with pytest.raises(InvalidWork):
-        Block.from_dict(block_data, threshold=18446744068091581575)
+        Block.from_dict(block_data, difficulty="fffffffeb1249487")
 
-    block = Block.from_dict(block_data, threshold=18446744068091581574)
+    block = Block.from_dict(block_data, difficulty="fffffffeb1249486")
 
     # Threshold is required
     with pytest.raises(ValueError):
-        block.threshold = None
+        block.difficulty = None
 
 
 def test_block_work_value(block_factory):
