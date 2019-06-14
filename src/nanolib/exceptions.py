@@ -2,9 +2,9 @@ from ed25519_blake2b import BadSignatureError
 
 
 __all__ = (
-    "InvalidBlock", "InvalidWork", "InvalidDifficulty", "InvalidSignature",
-    "InvalidBlockHash", "InvalidBalance", "InvalidSeed", "InvalidAccount",
-    "InvalidPrivateKey", "InvalidPublicKey"
+    "InvalidBlock", "InvalidWork", "InvalidDifficulty", "InvalidMultiplier",
+    "InvalidSignature", "InvalidBlockHash", "InvalidBalance", "InvalidSeed",
+    "InvalidAccount", "InvalidPrivateKey", "InvalidPublicKey"
 )
 
 

@@ -111,8 +111,8 @@ def _forbid_float(func):
                 "Floating numbers cause precision loss and are unsuitable "
                 "for handling monetary values."
             )
-        else:
-            return func(*args, **kwargs)
+
+        return func(*args, **kwargs)
 
     return _decorator
 

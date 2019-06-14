@@ -10,8 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Add support for Linux (ARM) using the GCC compiler.
  - Add support for the NEON instruction set on ARM for better performance when generating PoW.
  - Add `nanolib.accounts.validate_seed` function for validating seeds.
- - Add `nanolib.work.validate_threshold` and `nanolib.work.get_work_value` functions.
- - Add `Block.threshold` property to adjust the required work threshold on a per-block basis.
+ - Add `nanolib.work.validate_difficulty`, `nanolib.work.get_work_value`, `nanolib.work.derive_work_difficulty` and `nanolib.work.derive_work_multiplier` functions to help with dynamic PoW difficulty.
+ - Add `Block.difficulty` property to adjust the required work difficulty on a per-block basis.
  - Add `Block.work_value` property to get the value of the included work.
 
 ### Changed

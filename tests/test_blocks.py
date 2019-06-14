@@ -8,7 +8,8 @@ from tests.data import BLOCKS
 from nanolib.blocks import Block, MAX_BALANCE
 from nanolib.exceptions import (
     InvalidAccount, InvalidBlock, InvalidSignature, InvalidWork,
-    InvalidBlockHash, InvalidBalance, InvalidPublicKey)
+    InvalidBlockHash, InvalidBalance, InvalidPublicKey, InvalidDifficulty)
+from nanolib.util import is_hex
 
 
 VALID_ACCOUNT_ID = \
@@ -220,6 +221,10 @@ def test_block_solve_work(block_factory):
     # Try solving PoW with essentially impossible difficulty
     assert not block.solve_work("f"*16, timeout=0.1)
 
+    # Existing work will be ignored if it's invalid
+    block.work = "f"*16
+    block.solve_work(difficulty="8345468f269004a2")
+
 
 def test_block_verify_work(block_factory):
     """
@@ -246,7 +251,7 @@ def test_block_verify_work(block_factory):
 
 def test_block_verify_work_difficulty(block_factory):
     """
-    Load a block with work, and verify it different work difficultys
+    Load a block with work, and verify it different work difficulties
     making it either pass or fail
     """
     block = block_factory("send")
@@ -267,9 +272,27 @@ def test_block_verify_work_difficulty(block_factory):
     block.difficulty = "fffffffeb1249486"
 
 
+def test_block_difficulty(block_factory):
+    """
+    Test the `Block.difficulty` property
+    """
+    block = block_factory("send")
+
+    # The internal representation is an integer, while the 'difficulty'
+    # property returns the value as a hex string
+    assert block.difficulty == "8345468f269004a2"
+    assert block._difficulty == 9459044173002835106
+
+    block.difficulty = "0000000000000010"
+    assert block.difficulty == "0000000000000010"
+
+    with pytest.raises(InvalidDifficulty):
+        block.difficulty = "a"*17
+
+
 def test_block_invalid_difficulty():
     """
-    Create a Block with different difficultys to make it either pass or fail
+    Create a Block with different difficulties to make it either pass or fail
     """
     block_data = BLOCKS["send"]["data"].copy()
 
@@ -278,7 +301,7 @@ def test_block_invalid_difficulty():
 
     block = Block.from_dict(block_data, difficulty="fffffffeb1249486")
 
-    # Threshold is required
+    # Difficulty is required
     with pytest.raises(ValueError):
         block.difficulty = None
 

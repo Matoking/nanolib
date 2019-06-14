@@ -5,27 +5,21 @@ nanolib.blocks
 Methods to work with NANO blocks and a :class:`Block` class to construct
 (either manually or from JSON) and process NANO blocks
 """
-from hashlib import blake2b
-from binascii import unhexlify, hexlify
+from binascii import hexlify, unhexlify
 from functools import wraps
+from hashlib import blake2b
 from json import dumps, loads
 
-from ed25519_blake2b import VerifyingKey, SigningKey, BadSignatureError
+from ed25519_blake2b import BadSignatureError, SigningKey, VerifyingKey
 
-from .accounts import (
-    is_account_id_valid, validate_account_id, validate_public_key,
-    validate_private_key, get_account_public_key, get_account_id
-)
-from .work import (
-    parse_work, validate_work, validate_difficulty, parse_difficulty,
-    get_work_value, solve_work, WORK_DIFFICULTY
-)
-from .exceptions import (
-    InvalidBlock, InvalidSignature, InvalidWork, InvalidBalance,
-    InvalidBlockHash
-)
-from .util import is_hex, dec_to_hex
-
+from .accounts import (get_account_id, get_account_public_key,
+                       validate_account_id, validate_private_key,
+                       validate_public_key)
+from .exceptions import (InvalidBalance, InvalidBlock, InvalidBlockHash,
+                         InvalidSignature, InvalidWork)
+from .util import dec_to_hex, is_hex
+from .work import (WORK_DIFFICULTY, get_work_value, parse_difficulty,
+                   solve_work, validate_difficulty, validate_work)
 
 __all__ = (
     "balance_to_hex", "parse_hex_balance", "parse_signature",
@@ -259,8 +253,8 @@ class Block(object):
     def verify_work(self, difficulty=None):
         """Verify the work in the block
 
-        :param str difficulty: The difficulty/difficulty for the proof-of-work.
-                              NANO mainnet difficulty is used by default.
+        :param str difficulty: The difficulty for the proof-of-work.
+                               NANO mainnet difficulty is used by default.
         :raises ValueError: If work isn't included in the block
         :raises InvalidWork: If included work doesn't meet the difficulty
         """
@@ -338,8 +332,8 @@ class Block(object):
 
         :raises ValueError: If the block already has valid proof-of-work
                             meeting the difficulty
-        :param str difficulty: The difficulty/difficulty for the proof-of-work.
-                              NANO mainnet difficulty is used by default.
+        :param str difficulty: The difficulty for the proof-of-work.
+                               NANO mainnet difficulty is used by default.
         :param timeout: Timeout in seconds. If provided, None will be returned
                         if the work can't be solved in the given time.
                         If None, the function will block until the work is solved.
@@ -366,8 +360,8 @@ class Block(object):
         if result:
             self.work = result
             return True
-        else:
-            return False
+
+        return False
 
     def _validate(self, verify=True):
         """
@@ -529,8 +523,8 @@ class Block(object):
             return "epoch"
         elif self.previous == ZERO_BLOCK_HASH:
             return "open"
-        else:
-            return "send/receive"
+
+        return "send/receive"
 
     @property
     def has_valid_signature(self):
@@ -632,8 +626,8 @@ class Block(object):
         if self.work:
             return get_work_value(
                 block_hash=self.work_block_hash, work=self.work)
-        else:
-            return None
+
+        return None
 
     @property
     def block_hash(self):
@@ -820,5 +814,5 @@ class Block(object):
     signature = property(lambda x: x._signature, set_signature)
     work = property(lambda x: x._work, set_work)
     difficulty = property(
-        lambda x: dec_to_hex(x._difficulty, 8), set_difficulty
+        lambda x: dec_to_hex(x._difficulty, 8).lower(), set_difficulty
     )

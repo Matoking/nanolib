@@ -1,16 +1,13 @@
-import hashlib
+import importlib
 import random
-import cpuinfo
 import time
-
 from binascii import hexlify, unhexlify
-from concurrent.futures import ProcessPoolExecutor
 from hashlib import blake2b
 
-from bitarray import bitarray
+import cpuinfo
 
-from .exceptions import InvalidWork, InvalidDifficulty, InvalidMultiplier
-from .util import is_hex, dec_to_hex
+from .exceptions import InvalidDifficulty, InvalidMultiplier, InvalidWork
+from .util import dec_to_hex, is_hex
 
 # Select the PoW C extension depending on highest supported instruction set
 # based on the following priorities:
@@ -26,19 +23,18 @@ from .util import is_hex, dec_to_hex
 # TODO: Maybe run a short benchmark when running solve_work() for the first
 #       time?
 _cpu_flags = cpuinfo.get_cpu_info()["flags"]
+_cpu_flags_by_priority = ("avx", "sse4_1", "ssse3", "sse2", "neon", "ref")
 
-if "avx" in _cpu_flags:
-    from . import _work_avx as _work
-elif "sse4_1" in _cpu_flags:
-    from . import _work_sse4_1 as _work
-elif "ssse3" in _cpu_flags:
-    from . import _work_ssse3 as _work
-elif "sse2" in _cpu_flags:
-    from . import _work_sse2 as _work
-elif "neon" in _cpu_flags:
-    from . import _work_neon as _work
-else:
-    from . import _work_ref as _work
+for cpu_flag in _cpu_flags_by_priority:
+    if cpu_flag == "ref":
+        _work = importlib.import_module("nanolib._work_ref")
+        break
+    elif cpu_flag in _cpu_flags:
+        _work = importlib.import_module(
+            "nanolib._work_{}".format(cpu_flag)
+        )
+        break
+
 
 WORK_DIFFICULTY = "ffffffc000000000"
 WORK_DIFFICULTY_INT = int(WORK_DIFFICULTY, 16)
@@ -75,7 +71,7 @@ def parse_work(work):
 
 def get_work_value(block_hash, work):
     """
-    Get the proof-of-work value. The work value must be equal or higher than
+    Get the proof-of-work value. The work value must be equal to or higher than
     the work difficulty to be considered valid.
 
     :param str block_hash: Block hash as a 64-character hex string
@@ -99,8 +95,9 @@ def validate_work(block_hash, work, difficulty=WORK_DIFFICULTY):
 
     :param str block_hash: Block hash as a 64-character hex string
     :param str work: Work as a 16-character hex string
-    :param int difficulty: The difficulty/difficulty for the proof-of-work.
-                          NANO network's difficulty is used by default.
+    :param str difficulty: The difficulty for the proof-of-work
+                           as a 16-character hex string.
+                           NANO network's difficulty is used by default.
     :raises InvalidWork: If the work doesn't meet the difficulty
     :return: The work as a 16-character hex string
     :rtype: str
@@ -111,8 +108,8 @@ def validate_work(block_hash, work, difficulty=WORK_DIFFICULTY):
 
     if work_value < difficulty:
         raise InvalidWork("Work doesn't meet the required difficulty")
-    else:
-        return work.lower()
+
+    return work.lower()
 
 
 def validate_difficulty(difficulty):
@@ -120,7 +117,7 @@ def validate_difficulty(difficulty):
 
     :param str difficulty: Work difficulty as a 16-character hex string
     :raises InvalidDifficulty: If the difficulty isn't a 16-character hex value
-    :return: The work difficulty
+    :return: The work difficulty as a 16-character hex string
     :rtype: str
     """
     if not len(difficulty) == 16 or not is_hex(difficulty):
@@ -135,7 +132,8 @@ def parse_difficulty(difficulty):
     """Parse and return given hex-formatted difficulty as an integer.
 
     :param str difficulty: Work difficulty as a 16-character hex string
-    :raises InvalidDifficulty: If the difficulty isn't a 16-character hex value
+    :raises InvalidDifficulty: If the difficulty isn't a 16-character hex
+                               string
     :return: The work difficulty as an integer
     :rtype: int
     """
@@ -146,7 +144,7 @@ def parse_difficulty(difficulty):
 
 
 def derive_work_difficulty(multiplier, base_difficulty=None):
-    """Derive a work difficulty from a provided multiplier
+    """Derive the work difficulty from a provided multiplier
     and a base difficulty
 
     :param float multiplier: Work multiplier as a float. Work difficulty with
@@ -154,6 +152,10 @@ def derive_work_difficulty(multiplier, base_difficulty=None):
                              much work compared to the base difficulty.
     :param str base_difficulty: Base difficulty as a 16-character hex string.
                                 NANO network's difficulty is used by default.
+    :raises InvalidDifficulty: If the difficulty isn't a 16-character hex
+                               string
+    :raises ValueError: If the resulting difficulty is larger than \
+                        :math:`2^{64}-1`
     :return: The adjusted work difficulty as a 16-character hex string
     :rtype: str
     """
@@ -172,16 +174,21 @@ def derive_work_difficulty(multiplier, base_difficulty=None):
             "Multiplier has to be a positive non-zero float")
 
     difficulty = int((base_difficulty - (1 << 64)) / multiplier + (1 << 64))
+
+    if difficulty > (2**64)-1:
+        raise ValueError("Resulting difficulty is too large")
+
     return dec_to_hex(difficulty, 8).lower()
 
 
 def derive_work_multiplier(difficulty, base_difficulty=None):
-    """Derive a work multiplier from a difficulty and a base difficulty.
+    """Derive the work multiplier from a difficulty and a base difficulty.
 
     :param str difficulty: Work difficulty as a 16-character hex string
     :param str base_difficulty: Base work difficulty as a 16-character hex
                                 string.
                                 NANO network's difficulty is used by default.
+    :raises InvalidDifficulty: If difficulty isn't a 16-character hex string
     :return: The work multiplier as a float. Work difficulty with a multiplier
              of 2 requires on average twice as much work compared to the base
              difficulty.
@@ -203,8 +210,9 @@ def solve_work(block_hash, difficulty=WORK_DIFFICULTY, timeout=None):
     """Solve the work for the corresponding block hash.
 
     :param str block_hash: Block hash as a 64-character hex string
-    :param int difficulty: The difficulty/difficulty for the proof-of-work.
-                          NANO network's difficulty is used by default.
+    :param str difficulty: The difficulty for the proof-of-work as a
+                           16-character hex string.
+                           NANO network's difficulty is used by default.
     :param timeout: Timeout in seconds. If provided, None will be returned
                     if the work can't be solved in the given time.
                     If None, the function will block until the work is solved.

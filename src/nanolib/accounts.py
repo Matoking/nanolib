@@ -43,7 +43,6 @@ class AccountKeyPair(_AccountKeyPair):
     :ivar str private: Private key as a 64-character hex string
     :ivar str public: Public key as a 64-character hex string
     """
-    pass
 
 
 class AccountIDPrefix(enum.Enum):
@@ -252,8 +251,8 @@ def get_account_id(*, public_key=None, private_key=None, prefix=None):
     except ValueError:
         raise ValueError(
             "Account ID prefix has to be one of the following: "
-            "{prefixes}".format(prefixes=",".join(
-                AccountIDPrefix._value2member_map_)
+            "{prefixes}".format(
+                prefixes=",".join(AccountIDPrefix._value2member_map_)
             )
         )
 

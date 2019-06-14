@@ -82,17 +82,22 @@ def test_derive_work_difficulty():
 
     with pytest.raises(InvalidMultiplier):
         # Not a float
-        assert derive_work_difficulty(multiplier="invalid")
+        derive_work_difficulty(multiplier="invalid")
 
     with pytest.raises(InvalidMultiplier):
         # Zero or lower
-        assert derive_work_difficulty(multiplier=0)
+        derive_work_difficulty(multiplier=0)
 
     with pytest.raises(InvalidDifficulty):
         # Invalid difficulty
-        assert derive_work_difficulty(
+        derive_work_difficulty(
             multiplier=1, base_difficulty=hex(2**64)[2:]
         )
+
+    with pytest.raises(ValueError):
+        # Resulting difficulty is too large
+        derive_work_difficulty(
+            multiplier=268435456, base_difficulty="ffffffc000000000")
 
 
 def test_derive_work_multiplier():
