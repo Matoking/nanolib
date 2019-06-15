@@ -69,16 +69,30 @@ def parse_work(work):
     return work.lower()
 
 
-def get_work_value(block_hash, work):
+def get_work_value(block_hash, work, as_hex=False):
     """
     Get the proof-of-work value. The work value must be equal to or higher than
     the work difficulty to be considered valid.
 
     :param str block_hash: Block hash as a 64-character hex string
     :param str work: Work as a 16-character hex string
-    :return: The work value as a 64-bit integer
-    :rtype: int
+    :param bool as_hex: Whether to return the work value as a hex string or an
+                        integer.
+                        If True, a 16-character hex string is returned.
+                        If False, a 64-bit integer is returned.
+                        A 64-bit integer is returned by default.
+    :raises InvalidWork: If the work isn't a 16-character hex string
+    :raises InvalidBlockHash: If the block hash isn't a 64-character hex string
+    :return: A 16-character hex string or a 64-bit integer depending on
+             `as_hex`
+    :rtype: int or str
     """
+    # Import is deferred to avoid a circular import
+    from nanolib.blocks import validate_block_hash
+
+    validate_block_hash(block_hash)
+    parse_work(work)
+
     reversed_work = bytearray(unhexlify(work))
     reversed_work.reverse()
     work_hash = bytearray(blake2b(
@@ -86,6 +100,9 @@ def get_work_value(block_hash, work):
         digest_size=8).digest())
     work_hash.reverse()
     work_value = int(hexlify(work_hash), 16)
+
+    if as_hex:
+        work_value = dec_to_hex(work_value, 8).lower()
 
     return work_value
 

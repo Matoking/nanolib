@@ -3,11 +3,11 @@ from hashlib import blake2b
 
 import pytest
 from nanolib.exceptions import (InvalidDifficulty, InvalidMultiplier,
-                                InvalidWork)
+                                InvalidWork, InvalidBlockHash)
 from nanolib.util import dec_to_hex
 from nanolib.work import (derive_work_difficulty, derive_work_multiplier,
-                          parse_difficulty, parse_work, solve_work,
-                          validate_difficulty, validate_work)
+                          parse_difficulty, parse_work, get_work_value,
+                          solve_work, validate_difficulty, validate_work)
 
 VALID_BLOCK_HASH = \
     "B585D9363B8265CFD5993F30A3D6DE6B5CA5CC7879E0AFA94D13F08B713B9FFD"
@@ -37,6 +37,17 @@ def test_parse_work():
 
     # parse_work returns lowercase hex string
     assert parse_work("A"*16) == "a"*16
+
+
+def test_get_work_value():
+    assert get_work_value("a"*64, "f"*16) == 5108225079566541904
+    assert get_work_value("a"*64, "f"*16, as_hex=True) == "46e40fa5344e2450"
+
+    with pytest.raises(InvalidBlockHash):
+        get_work_value("f"*65, "a"*16)
+
+    with pytest.raises(InvalidWork):
+        get_work_value("f"*64, "a"*17)
 
 
 def test_validate_work():
