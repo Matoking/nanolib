@@ -232,6 +232,7 @@ def get_account_id(*, public_key=None, private_key=None, prefix=None):
         checksum_bytes = blake2b(public_key_bytes, digest_size=5).digest()
         checksum_bytes = bytearray(checksum_bytes)
         checksum_bytes.reverse()
+        checksum_bytes = bytes(checksum_bytes)
         checksum = bytes_to_nbase32(checksum_bytes)
 
         return "{prefix}{account}{checksum}".format(

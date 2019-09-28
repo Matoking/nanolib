@@ -28,7 +28,7 @@ REQUIRES_PYTHON = '>=3.6.0'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'bitarray>=0.8.1', 'ed25519-blake2b>=1.4', 'py-cpuinfo>=4'
+    'ed25519-blake2b>=1.4', 'py-cpuinfo>=4'
 ]
 
 
@@ -110,6 +110,16 @@ elif _is_arm:
 else:
     EXTENSIONS_TO_BUILD = [create_work_extension("ref")]
 
+EXTENSIONS_TO_BUILD.append(
+    Extension(
+        "nanolib._nbase32",
+        include_dirs=[os.path.join("src", "nanolib-nbase32-module")],
+        sources=[
+            os.path.join("src", "nanolib-nbase32-module", "nbase32.c"),
+            os.path.join("src", "nanolib-nbase32-module", "bit_array.c")
+        ]
+    )
+)
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
