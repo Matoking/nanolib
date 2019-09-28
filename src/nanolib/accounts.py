@@ -299,12 +299,12 @@ def get_account_public_key(*, account_id=None, private_key=None):
                 len(account_rest) != 60:
             raise InvalidAccount("Invalid NANO address")
 
-        valid_regex = "^[13456789abcdefghijkmnopqrstuwxyz]+$"
-        if not re.match(valid_regex, account_rest):
+        try:
+            account_bytes = nbase32_to_bytes(account_rest)
+            public_key_bytes, account_checksum_bytes = \
+                account_bytes[0:32], account_bytes[32:37]
+        except ValueError:
             raise InvalidAccount("Invalid NANO address")
-
-        public_key_bytes = nbase32_to_bytes(account_rest[0:52])
-        account_checksum_bytes = nbase32_to_bytes(account_rest[52:60])
 
         key_checksum_bytes = bytearray(
             blake2b(public_key_bytes, digest_size=5).digest()
