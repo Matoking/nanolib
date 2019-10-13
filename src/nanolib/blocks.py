@@ -5,6 +5,7 @@ nanolib.blocks
 Methods to work with NANO blocks and a :class:`Block` class to construct
 (either manually or from JSON) and process NANO blocks
 """
+from base64 import b64decode, b64encode
 from binascii import hexlify, unhexlify
 from functools import wraps
 from hashlib import blake2b
@@ -204,9 +205,8 @@ class Block(object):
     """
     __slots__ = (
         "_block_type", "_account", "_previous", "_destination",
-        "_representative", "_balance", "_source", "_link", "_link_as_account",
-        "_signature", "_work", "_difficulty",
-        "_has_valid_signature", "_has_valid_work"
+        "_representative", "_balance", "_source", "_link", "_signature",
+        "_work", "_difficulty", "_has_valid_signature", "_has_valid_work"
     )
 
     def __init__(self, block_type, verify=True, difficulty=None, **kwargs):
@@ -378,7 +378,7 @@ class Block(object):
         :raises InvalidWork: If work was provided and was found to be below
                              the required difficulty
         """
-        block_params = set(vars(self).keys())
+        block_params = set(self.to_dict().keys())
         required_params = set(BLOCK_REQUIRED_PARAMS[self.block_type])
         optional_params = set(BLOCK_OPTIONAL_PARAMS[self.block_type])
 
@@ -413,8 +413,7 @@ class Block(object):
             if self.work:
                 self.verify_work()
 
-    @property
-    def __dict__(self):
+    def to_dict(self):
         """Return a :type:`dict` consisting of items used in the block
         that can be broadcast to the NANO network
 
@@ -455,7 +454,7 @@ class Block(object):
         :return: A JSON-formatted string
         :rtype: str
         """
-        block_items = vars(self)
+        block_items = self.to_dict()
 
         return dumps(block_items)
 
@@ -641,15 +640,15 @@ class Block(object):
         if self.block_type == "receive":
             return blake2b(
                 b"".join([
-                    unhexlify(self.previous),
-                    unhexlify(self.source)
+                    self._previous,
+                    self._source
                 ]),
                 digest_size=32
             ).hexdigest().upper()
         elif self.block_type == "open":
             return blake2b(
                 b"".join([
-                    unhexlify(self.source),
+                    self._source,
                     unhexlify(
                         get_account_public_key(account_id=self.representative)
                     ),
@@ -662,7 +661,7 @@ class Block(object):
         elif self.block_type == "change":
             return blake2b(
                 b"".join([
-                    unhexlify(self.previous),
+                    self._previous,
                     unhexlify(
                         get_account_public_key(account_id=self.representative)
                     )
@@ -672,7 +671,7 @@ class Block(object):
         elif self.block_type == "send":
             return blake2b(
                 b"".join([
-                    unhexlify(self.previous),
+                    self._previous,
                     unhexlify(
                         get_account_public_key(account_id=self.destination)
                     ),
@@ -681,18 +680,17 @@ class Block(object):
                 digest_size=32
             ).hexdigest().upper()
         elif self.block_type == "state":
-            link_bytes = unhexlify(self.link)
             data = b"".join([
                 STATE_BLOCK_HEADER_BYTES,
                 unhexlify(
                     get_account_public_key(account_id=self.account)
                 ),
-                unhexlify(self.previous),
+                self._previous,
                 unhexlify(
                     get_account_public_key(account_id=self.representative)
                 ),
                 unhexlify(balance_to_hex(self.balance)),
-                link_bytes
+                self._link
             ])
             return blake2b(data, digest_size=32).hexdigest().upper()
         else:
@@ -723,7 +721,15 @@ class Block(object):
     def set_source(self, source):
         if source is not None:
             validate_block_hash(source)
-        self._source = source
+            self._source = unhexlify(source.encode("utf-8"))
+        else:
+            self._source = None
+
+    def get_source(self):
+        if not self._source:
+            return None
+
+        return hexlify(self._source).decode("utf-8").upper()
 
     @block_parameter
     @invalidate_signature
@@ -734,7 +740,13 @@ class Block(object):
         else:
             previous = ZERO_BLOCK_HASH
 
-        self._previous = previous
+        self._previous = unhexlify(previous.encode("utf-8"))
+
+    def get_previous(self):
+        if not self._previous:
+            return None
+
+        return hexlify(self._previous).decode("utf-8").upper()
 
     @block_parameter
     @invalidate_signature
@@ -761,38 +773,63 @@ class Block(object):
     @invalidate_signature
     def set_link(self, link):
         if link is not None:
-            self._link = validate_block_hash(link)
-            self._link_as_account = get_account_id(public_key=self.link)
+            self._link = unhexlify(validate_block_hash(link).encode("utf-8"))
         else:
-            self._link = ZERO_BLOCK_HASH
-            self._link_as_account = ZERO_ACCOUNT_ID
+            self._link = unhexlify(ZERO_BLOCK_HASH.encode("utf-8"))
+
+    def get_link(self):
+        if not self._link:
+            return None
+
+        return hexlify(self._link).decode("utf-8").upper()
 
     @block_parameter
     @invalidate_signature
     def set_link_as_account(self, link_as_account):
         if link_as_account is not None:
-            self._link_as_account = validate_account_id(link_as_account)
-            self._link = get_account_public_key(
-                account_id=link_as_account).upper()
+            self._link = unhexlify(
+                get_account_public_key(
+                    account_id=link_as_account
+                ).encode("utf-8")
+            )
         else:
-            self._link = ZERO_BLOCK_HASH
-            self._link_as_account = ZERO_ACCOUNT_ID
+            self._link = unhexlify(ZERO_BLOCK_HASH.encode("utf-8"))
+
+    def get_link_as_account(self):
+        if not self._link:
+            return None
+
+        return get_account_id(public_key=self.link)
 
     @block_parameter
     @invalidate_signature
     def set_signature(self, signature):
         if signature is not None:
-            self._signature = parse_signature(signature)
+            self._signature = unhexlify(
+                parse_signature(signature).encode("utf-8")
+            )
         else:
             self._signature = None
+
+    def get_signature(self):
+        if not self._signature:
+            return None
+
+        return hexlify(self._signature).decode("utf-8").upper()
 
     @block_parameter
     @invalidate_work
     def set_work(self, work):
         if work is not None:
-            self._work = work
+            self._work = unhexlify(work.encode("utf-8"))
         else:
             self._work = None
+
+    def get_work(self):
+        if not self._work:
+            return None
+
+        return hexlify(self._work).decode("utf-8")
 
     @invalidate_work
     def set_difficulty(self, difficulty):
@@ -803,16 +840,15 @@ class Block(object):
 
     block_type = property(lambda x: x._block_type, set_block_type)
     account = property(lambda x: x._account, set_account)
-    source = property(lambda x: x._source, set_source)
-    previous = property(lambda x: x._previous, set_previous)
+    source = property(get_source, set_source)
+    previous = property(get_previous, set_previous)
     destination = property(lambda x: x._destination, set_destination)
     representative = property(lambda x: x._representative, set_representative)
     balance = property(lambda x: x._balance, set_balance)
-    link = property(lambda x: x._link, set_link)
-    link_as_account = property(
-        lambda x: x._link_as_account, set_link_as_account)
-    signature = property(lambda x: x._signature, set_signature)
-    work = property(lambda x: x._work, set_work)
+    link = property(get_link, set_link)
+    link_as_account = property(get_link_as_account, set_link_as_account)
+    signature = property(get_signature, set_signature)
+    work = property(get_work, set_work)
     difficulty = property(
         lambda x: dec_to_hex(x._difficulty, 8).lower(), set_difficulty
     )
