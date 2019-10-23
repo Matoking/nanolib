@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4] - 2019-10-23
 ### Added
   - Add `Block.to_dict()`
 
@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Improved performance when encoding or decoding account IDs.
  - Reduced memory footprint for Block instances.
 
-## [0.3]
+## [0.3] - 2019-06-08
 ### Added
  - Add support for Windows (x86 and x86-64) using the MSVC compiler.
  - Add support for Linux (ARM) using the GCC compiler.
@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release
 
-[Unreleased]: https://github.com/Matoking/nanolib/compare/0.3...HEAD
+[Unreleased]: https://github.com/Matoking/nanolib/compare/0.4...HEAD
+[0.4]: https://github.com/Matoking/nanolib/compare/0.3...0.4
 [0.3]: https://github.com/Matoking/nanolib/compare/0.2...0.3
 [0.2]: https://github.com/Matoking/nanolib/compare/0.1...0.2
