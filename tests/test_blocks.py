@@ -103,7 +103,7 @@ def test_block_invalid_block_type():
     with pytest.raises(ValueError) as exc:
         Block(block_type="transactionate_funds")
 
-    assert "block_type" in str(exc)
+    assert "block_type" in str(exc.value)
 
 
 def test_block_invalid_signature():
@@ -119,7 +119,7 @@ def test_block_invalid_signature():
         # Invalid signature (can't be verified)
         Block.from_dict(block)
 
-    assert "couldn't be verified" in str(exc)
+    assert "couldn't be verified" in str(exc.value)
 
     block["signature"] = "A"
 
@@ -127,7 +127,7 @@ def test_block_invalid_signature():
         # Invalid signature (incorrect length)
         Block.from_dict(block)
 
-    assert "hexadecimal string" in str(exc)
+    assert "hexadecimal string" in str(exc.value)
 
 
 def test_block_signature_with_missing_parameters():
@@ -448,7 +448,7 @@ def test_block_legacy_send_from_dict():
     with pytest.raises(InvalidBalance) as exc:
         Block.from_dict(block_data)
 
-    assert "needs to be a hex" in str(exc)
+    assert "needs to be a hex" in str(exc.value)
 
 
 def test_block_set_link(block_factory):
@@ -511,7 +511,7 @@ def test_block_missing_parameters():
     with pytest.raises(InvalidBlock) as exc:
         Block.from_dict(block_data)
 
-    assert "is missing required parameters: previous" in str(exc)
+    assert "is missing required parameters: previous" in str(exc.value)
 
 
 def test_block_prohibited_parameters():
@@ -524,7 +524,7 @@ def test_block_prohibited_parameters():
     with pytest.raises(InvalidBlock) as exc:
         Block.from_dict(block_data)
 
-    assert "has prohibited parameters: balance" in str(exc)
+    assert "has prohibited parameters: balance" in str(exc.value)
 
 
 def test_block_is_complete():
