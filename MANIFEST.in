@@ -4,6 +4,7 @@ include src/nanolib-work-module/work.c
 graft src/nanolib
 graft src/nanolib-work-module/BLAKE2/ref
 graft src/nanolib-work-module/BLAKE2/sse
+graft src/nanolib-work-module/BLAKE2/neon
 graft src/nanolib-nbase32-module
 
 exclude tox.ini requirements_dev.txt *.yml
