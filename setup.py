@@ -32,14 +32,14 @@ REQUIRED = [
 ]
 
 
-def get_compile_args(iset=None):
-    FLAGS = {
+def get_compile_args(iset=None, build_platform="x86"):
+    flags = {
         "unix": {
             "avx": ["-DWORK_AVX", "-mavx"],
             "sse4_1": ["-DWORK_SSE4_1", "-msse4.1"],
             "ssse3": ["-DWORK_SSSE3", "-mssse3"],
             "sse2": ["-DWORK_SSE2", "-msse2"],
-            "neon": ["-DWORK_NEON", "-mfpu=neon"],
+            "neon": ["-DWORK_NEON"],
             None: ["-DWORK_REF"]
         },
         "msvc": {
@@ -52,10 +52,15 @@ def get_compile_args(iset=None):
         }
     }
 
+    # "-mfpu=neon" is only required when building on Linux & 32-bit ARM;
+    # it is required on 64-bit ARM and is thus not recognized
+    if build_platform == "arm":
+        flags["unix"]["neon"].append("-mfpu=neon")
+
     compiler = get_default_compiler()
 
     try:
-        return FLAGS[compiler][iset]
+        return flags[compiler][iset]
     except KeyError:
         raise OSError("Compiler '{}' not supported.".format(compiler))
 
@@ -68,7 +73,7 @@ SOURCE_FILES = {
 }
 
 
-def create_work_extension(source_name="ref", iset=None):
+def create_work_extension(source_name="ref", iset=None, build_platform=None):
     source_path = os.path.join(
         "src", "nanolib-work-module", "BLAKE2", source_name
     )
@@ -80,7 +85,7 @@ def create_work_extension(source_name="ref", iset=None):
         sources=[
             os.path.join("src", "nanolib-work-module", "work.c")
         ] + SOURCE_FILES[source_name],
-        extra_compile_args=get_compile_args(iset)
+        extra_compile_args=get_compile_args(iset, build_platform)
     )
 
 
@@ -89,23 +94,29 @@ EXTENSIONS_TO_BUILD = []
 _machine = platform.machine()
 
 # https://stackoverflow.com/a/45125525
-_is_arm = _machine.startswith("arm") or _machine.startswith("aarch64")
+_is_arm = _machine.startswith("arm")
+_is_aarch64 = _machine.startswith("aarch64")
 # 'AMD64' only appears on Windows
 _is_x86 = _machine.startswith("x86") or _machine in ("i386", "i686", "AMD64")
 
 
 if _is_x86:
     EXTENSIONS_TO_BUILD = [
-        create_work_extension("sse", "avx"),
-        create_work_extension("sse", "sse4_1"),
-        create_work_extension("sse", "ssse3"),
-        create_work_extension("sse", "sse2"),
-        create_work_extension("ref")
+        create_work_extension("sse", "avx", "x86"),
+        create_work_extension("sse", "sse4_1", "x86"),
+        create_work_extension("sse", "ssse3", "x86"),
+        create_work_extension("sse", "sse2", "x86"),
+        create_work_extension("ref", None, "x86")
     ]
 elif _is_arm:
     EXTENSIONS_TO_BUILD = [
-        create_work_extension("neon", "neon"),
-        create_work_extension("ref")
+        create_work_extension("neon", "neon", "arm"),
+        create_work_extension("ref", None, "arm")
+    ]
+elif _is_aarch64:
+    EXTENSIONS_TO_BUILD = [
+        create_work_extension("neon", "neon", "aarch64"),
+        create_work_extension("ref", None, "aarch64")
     ]
 else:
     EXTENSIONS_TO_BUILD = [create_work_extension("ref")]
