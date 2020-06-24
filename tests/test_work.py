@@ -119,8 +119,8 @@ def test_derive_work_multiplier():
         difficulty="ffffffe000000000", base_difficulty="ffffffc000000000"
     ) == pytest.approx(2)
 
-    # 'base_difficulty' defaults to 'ffffffc000000000'
-    assert derive_work_multiplier(difficulty="ffffffc000000000") == 1
+    # 'base_difficulty' defaults to 'fffffff800000000'
+    assert derive_work_multiplier(difficulty="fffffff800000000") == 1
 
     with pytest.raises(InvalidDifficulty):
         assert derive_work_multiplier(

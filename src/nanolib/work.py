@@ -36,7 +36,7 @@ for cpu_flag in _cpu_flags_by_priority:
         break
 
 
-WORK_DIFFICULTY = "ffffffc000000000"
+WORK_DIFFICULTY = "fffffff800000000"
 WORK_DIFFICULTY_INT = int(WORK_DIFFICULTY, 16)
 
 
