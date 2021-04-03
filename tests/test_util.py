@@ -1,6 +1,6 @@
 import pytest
 
-from nanolib.util import nbase32_to_bytes, bytes_to_nbase32
+from nanolib.util import nbase32_to_bytes, bytes_to_nbase32, is_hex
 
 
 def test_nbase32_to_bytes():
@@ -30,3 +30,12 @@ def test_bytes_to_nbase32_empty():
         bytes_to_nbase32(b"")
 
     assert "Byte array is empty" in str(exc.value)
+
+
+def test_is_hex():
+    assert is_hex("00aabbccddeeff")
+
+    # '0x' prefix is not allowed
+    assert not is_hex("0x00000000000000")
+
+    assert not is_hex("aabbccddeeffgg")

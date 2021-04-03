@@ -115,7 +115,8 @@ def validate_work(block_hash, work, difficulty=WORK_DIFFICULTY):
     :param str difficulty: The difficulty for the proof-of-work
                            as a 16-character hex string.
                            NANO network's difficulty is used by default.
-    :raises InvalidWork: If the work doesn't meet the difficulty
+    :raises InvalidWork: If the work doesn't meet the difficulty or isn't
+                         a 16-character hex string
     :return: The work as a 16-character hex string
     :rtype: str
     """

@@ -6,6 +6,8 @@ Functions for working with the variant of Base32 encoding
 (referred to as "Nano Base32") used in account IDs, as well as other general
 functions
 """
+import binascii
+
 import nanolib._nbase32
 
 __all__ = (
@@ -42,7 +44,7 @@ def bytes_to_nbase32(b):
 
 def is_hex(h):
     try:
-        int(h, 16)
+        binascii.unhexlify(h)
         return True
-    except ValueError:
+    except binascii.Error:
         return False
