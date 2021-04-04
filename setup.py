@@ -93,6 +93,8 @@ EXTENSIONS_TO_BUILD = []
 
 _machine = platform.machine()
 
+_is_unix_compiler = get_default_compiler() == "unix"
+
 # https://stackoverflow.com/a/45125525
 _is_arm = _machine.startswith("arm")
 _is_aarch64 = _machine.startswith("aarch64")
@@ -128,7 +130,9 @@ EXTENSIONS_TO_BUILD.append(
         sources=[
             os.path.join("src", "nanolib-nbase32-module", "nbase32.c"),
             os.path.join("src", "nanolib-nbase32-module", "bit_array.c")
-        ]
+        ],
+        # Older GCC versions require that we specify the C spec explicitly
+        extra_compile_args=["-std=c99"] if _is_unix_compiler else None
     )
 )
 

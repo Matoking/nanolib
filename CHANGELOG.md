@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
  - Hexadecimal strings prefixed with '0x' no longer raise a binascii.Error when passed to functions that expect a hexadecimal string as a parameter.
+ - Fix C extension build failing when using older GCC toolchain.
 
 ## [0.4.2] - 2020-06-25
 ### Fixed
