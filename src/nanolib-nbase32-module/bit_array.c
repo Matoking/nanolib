@@ -20,10 +20,16 @@
 #include <string.h> // memset()
 #include <assert.h>
 #include <time.h> // needed for seeding rand()
-#include <unistd.h>  // need for getpid() for seeding rand number
 #include <ctype.h>  // need for tolower()
 #include <errno.h>  // perror()
 #include <sys/time.h> // for seeding random
+
+// need for getpid() for seeding rand number
+#if defined(_WIN32)
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
 
 // Windows includes
 #if defined(_WIN32)
