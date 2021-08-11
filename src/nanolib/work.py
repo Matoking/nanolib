@@ -14,11 +14,11 @@ from .util import dec_to_hex, is_hex
 # AVX > SSE4.1 > SSSE3 > SSE2 > reference implementation
 #
 # This based on a Ryzen 1800X giving the following results:
-# avx speed: 6185344 hashes/s (this is likely the fastest on Intel CPUs)
-# sse4_1 speed: 6259267 hashes/s
-# ssse3 speed: 6249287 hashes/s
-# sse2 speed: 4635929 hashes/s
-# ref speed: 4539306 hashes/s
+# avx speed: 1546336 hashes/s (this is likely the fastest on Intel CPUs)
+# sse4_1 speed: 1564816 hashes/s
+# ssse3 speed: 1562321 hashes/s
+# sse2 speed: 1158982 hashes/s
+# ref speed: 1134826 hashes/s
 
 # TODO: Maybe run a short benchmark when running solve_work() for the first
 #       time?
